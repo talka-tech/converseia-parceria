@@ -198,10 +198,10 @@ export default function PartnerDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+  <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
+  <header className="border-b bg-[#151d2b]/80 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -227,21 +227,21 @@ export default function PartnerDashboard() {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8">
+  <div className="container mx-auto px-6 py-8">
         
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
+          <h2 className="text-3xl font-extrabold mb-2 text-blue-400 drop-shadow-glow">
             Bem-vindo, {partnerData.name}! 👋
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-blue-200/90">
             Você está pronto para revolucionar o setor jurídico com IA. Comece explorando os recursos disponíveis.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Vendas Totais</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -252,7 +252,7 @@ export default function PartnerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Comissão Atual</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -263,7 +263,7 @@ export default function PartnerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -274,7 +274,7 @@ export default function PartnerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Próxima Meta</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
@@ -287,7 +287,7 @@ export default function PartnerDashboard() {
         </div>
 
         {/* Progress to Next Tier */}
-        <Card className="mb-8">
+  <Card className="mb-8 bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Zap className="w-5 h-5 text-primary mr-2" />

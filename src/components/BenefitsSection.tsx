@@ -57,13 +57,13 @@ const benefits = [
 
 export default function BenefitsSection() {
   return (
-    <section className="py-20 bg-background">
+    <section className="py-20 bg-gradient-to-b from-[#151d2b]/90 to-[#1a2233]/90">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-6">
-            As Vantagens de Ser um <span className="text-primary">Parceiro ConverseIA Direito</span>
+          <h2 className="text-4xl font-bold mb-6 text-white">
+            As Vantagens de Ser um <span className="text-blue-400">Parceiro ConverseIA Direito</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
             Ao se juntar ao programa, você entra em um ecossistema projetado para gerar lucro, crescimento e liderança no nicho de tecnologia jurídica.
           </p>
         </div>
@@ -72,20 +72,20 @@ export default function BenefitsSection() {
           {benefits.map((benefit, index) => {
             const Icon = benefit.icon;
             return (
-              <Card key={index} className="h-full hover:shadow-primary transition-all duration-300 border-2 hover:border-primary/20">
+              <Card key={index} className="h-full bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 hover:scale-105 hover:border-blue-400/40 transition-all duration-300 text-white">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-gradient-primary rounded-lg">
+                    <div className="p-3 bg-gradient-to-br from-blue-600 via-blue-400 to-blue-700 rounded-lg shadow-md">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                    <Badge variant="secondary" className="bg-blue-400/10 text-blue-300 border border-blue-400/30">
                       {benefit.badge}
                     </Badge>
                   </div>
-                  <CardTitle className="text-xl">{benefit.title}</CardTitle>
+                  <CardTitle className="text-xl text-blue-100 drop-shadow-glow">{benefit.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">{benefit.description}</p>
+                  <p className="text-blue-200/90 leading-relaxed">{benefit.description}</p>
                 </CardContent>
               </Card>
             );

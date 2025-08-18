@@ -144,10 +144,10 @@ export default function PartnerSignup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+  <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-2xl mx-auto">
-          <Card className="border-2 shadow-lg">
+          <Card className="border-2 shadow-lg bg-[#151d2b]/80 border-blue-700/40 text-white">
             <CardHeader className="text-center">
               <img src="/iconecomaprincipalcornalogoefundobranco.png" alt="ConverseIA Direito" className="w-16 h-16 mx-auto mb-4" />
               <CardTitle className="text-3xl">Cadastro de Parceiro</CardTitle>

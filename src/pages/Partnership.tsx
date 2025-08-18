@@ -28,12 +28,12 @@ const targetPartners = [
 
 export default function Partnership() {
   return (
-    <div className="min-h-screen">
+  <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       <Navigation />
       <PartnersHero />
       
       {/* Target Partners Section */}
-      <section className="py-20 bg-background">
+  <section className="py-20 bg-gradient-to-b from-[#101828]/80 to-[#1a2233]/90">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-6">
@@ -46,7 +46,7 @@ export default function Partnership() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {targetPartners.map((partner, index) => (
-              <Card key={index} className="border-2 hover:border-primary/20 transition-all duration-300">
+              <Card key={index} className="border-2 hover:border-blue-400/40 bg-[#151d2b]/80 shadow-xl shadow-blue-900/20 transition-all duration-300 text-white">
                 <CardHeader>
                   <div className="flex items-center mb-2">
                     <CheckCircle className="w-6 h-6 text-primary mr-3" />
@@ -71,11 +71,15 @@ export default function Partnership() {
         </div>
       </section>
 
-      <BenefitsSection />
-      <HowItWorksSection />
+      <section className="bg-gradient-to-b from-[#151d2b]/90 to-[#1a2233]/90 py-20">
+        <BenefitsSection />
+      </section>
+      <section className="bg-gradient-to-b from-[#1a2233]/90 to-[#101828]/90 py-20">
+        <HowItWorksSection />
+      </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-gradient-hero text-white">
+  <section className="py-20 bg-gradient-to-b from-[#1a2233]/80 to-[#101828]/90 text-white">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-4xl font-bold mb-6">
             Pronto para Revolucionar o Setor Jurídico?
@@ -83,7 +87,7 @@ export default function Partnership() {
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
             Junte-se ao programa de parceiros da ConverseIA Direito e comece a construir um negócio lucrativo no futuro da advocacia.
           </p>
-          <Button asChild variant="hero" size="lg" className="text-lg px-8 py-6 bg-white text-primary hover:bg-white/90">
+          <Button asChild variant="hero" size="lg" className="text-lg px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 border border-blue-400/40">
             <Link to="/parceria/cadastro">
               Começar Agora
               <ArrowRight className="ml-2" />
