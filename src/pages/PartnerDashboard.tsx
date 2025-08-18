@@ -33,6 +33,7 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface PartnerData {
+  id: number;
   name: string;
   companyName: string;
   email: string;
@@ -589,7 +590,6 @@ export default function PartnerDashboard() {
                     </div>
                   </div>
                 )}
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
