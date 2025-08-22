@@ -10,16 +10,16 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-gray-900 text-white py-3">
-      <div className="container mx-auto px-6">
-        <ul className="flex justify-center space-x-8">
+    <nav className="w-full bg-[#101828]/90 shadow-lg backdrop-blur-md text-white py-0 h-16 flex items-center fixed top-0 left-0 z-50">
+      <div className="container mx-auto px-8 flex justify-center">
+        <ul className="flex gap-10">
           {menuItems.map((item, index) => (
             <li key={index}>
               <a
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white hover:text-gray-300 transition-colors duration-200 font-medium"
+                className="text-white text-base font-semibold px-4 py-2 rounded-md transition-colors duration-200 hover:bg-blue-600/80 hover:text-white focus:bg-blue-700/90 focus:text-white"
               >
                 {item.label}
               </a>
