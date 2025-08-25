@@ -195,7 +195,7 @@ export default function Partnership() {
               {
                 icon: Target,
                 number: "01",
-                title: "Ganhe com Cada Venda (e Depois Dela)",
+                title: "Ganhe com Cada Venda (e depois dela)",
                 description: "Você recebe uma comissão de 30% em todas as vendas que realizar. Ao atingir o marco de R$ 50.000 em faturamento, essa taxa salta para 50%. Suas renovações se transformam em receita sustentável, e você também ganha comissões em todos os novos produtos e cross-sells que lançarmos.",
                 note: "As comissões são pagas mensalmente e você tem acesso a relatórios detalhados de performance no Portal de Parceiros."
               },
