@@ -1,3 +1,6 @@
+* {
+  font-family: quicksand, sans-serif;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -37,8 +37,8 @@ const Index = () => {
           <div className="flex items-center justify-center mb-8">
             <img src="/logotodabracahorizontal.png" alt="ConverseIA Direito" className="h-16 drop-shadow-lg" />
           </div>
-          <h2 className="text-5xl lg:text-7xl font-extrabold mb-8 leading-tight bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent drop-shadow-glow">
-            Automatize seu<br />
+          <h2 className="text-5xl lg:text-7xl font-extrabold mb-8 leading-[1.08] bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent drop-shadow-glow" style={{overflowWrap:'anywhere'}}>
+              Automatize seu<br />
             <span className="text-blue-400">Escritório de Advocacia</span><br />
             com Inteligência Artificial
           </h2>
@@ -54,16 +54,12 @@ const Index = () => {
                 <ArrowRight className="ml-2" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" className="text-xl px-8 py-6 bg-white/10 border-blue-400/30 text-blue-200 hover:bg-blue-900/40 shadow-md">
-              <Zap className="mr-2" />
-              Ver Demonstração
-            </Button>
           </div>
         </div>
       </section>
 
       {/* Quick Stats */}
-      <section className="py-16 bg-gradient-to-b from-[#101828]/80 to-[#1a2233]/90">
+  <section className="pt-6 pb-10 bg-gradient-to-b from-[#101828]/80 to-[#1a2233]/90">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-8 rounded-2xl bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 hover:scale-105 transition-transform">
@@ -86,7 +82,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-b from-[#1a2233]/80 to-[#101828]/90">
+  <section className="pt-10 pb-16 bg-gradient-to-b from-[#1a2233]/80 to-[#101828]/90">
         <div className="container mx-auto px-6 text-center">
           <Building className="w-16 h-16 text-blue-400 mx-auto mb-6 drop-shadow-glow" />
           <h2 className="text-4xl font-extrabold mb-6 text-white drop-shadow-glow">
