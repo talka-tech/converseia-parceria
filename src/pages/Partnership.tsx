@@ -203,13 +203,6 @@ export default function Partnership() {
                       <span className="text-6xl font-bold text-white/40 mb-8">{step.number}</span>
                       <span className="flex items-center justify-center w-16 h-16 rounded-xl bg-white/10 mb-4">
                         <Icon className="w-10 h-10 text-white/80" />
-                        <img src="/logo_nome.png" alt="ConverseIA Direito" className="h-16 drop-shadow-lg" onError={e => {
-                          const fallback = "/logo.png";
-                          const img = e.target as HTMLImageElement;
-                          if (img && img.src && !img.src.endsWith(fallback)) {
-                            img.src = fallback;
-                          }
-                        }} />
                       </span>
                       <span className="text-white/80 text-sm font-medium tracking-wide">Passo {step.number}</span>
                     </div>
