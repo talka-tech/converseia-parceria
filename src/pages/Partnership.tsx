@@ -54,7 +54,39 @@ export default function Partnership() {
         `}</style>
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="flex items-center justify-center mb-8">
-            <img src="/logotodabracahorizontal.png" alt="ConverseIA Direito" className="h-16 drop-shadow-lg" />
+            {/* Log para depuração do carregamento da imagem */}
+            {(() => {
+              const imgPath = "/logotodabracahorizontal.png";
+              if (typeof window !== "undefined") {
+                console.log("[LOG] Tentando carregar logo:", imgPath);
+                // Testa se o arquivo existe via fetch (apenas em produção)
+                if (window.location.hostname !== "localhost") {
+                  fetch(imgPath, { method: "HEAD" })
+                    .then(res => {
+                      if (res.ok) {
+                        console.log("[LOG] Logo encontrado:", imgPath);
+                      } else {
+                        console.error("[LOG] Logo NÃO encontrado:", imgPath, res.status);
+                      }
+                    })
+                    .catch(err => {
+                      console.error("[LOG] Erro ao buscar logo:", imgPath, err);
+                    });
+                }
+              }
+              return null;
+            })()}
+            <img
+              src="/logotodabracahorizontal.png"
+              alt="ConverseIA Direito"
+              className="h-16 drop-shadow-lg"
+              onError={e => {
+                console.error("[LOG] Erro ao carregar a logo:", e);
+              }}
+              onLoad={() => {
+                console.log("[LOG] Logo carregada com sucesso");
+              }}
+            />
           </div>
           <h2 className="text-5xl lg:text-7xl font-extrabold mb-8 leading-[1.08] bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent drop-shadow-glow" style={{overflowWrap:'anywhere'}}>
               Automatize seu<br />
