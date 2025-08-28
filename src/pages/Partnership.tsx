@@ -55,46 +55,17 @@ export default function Partnership() {
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="flex items-center justify-center mb-8">
             {/* Logs gerais para depuração do carregamento da logo */}
-            {(() => {
-              const imgPath = "/converseia-logo-horizontal.png";
-              if (typeof window !== "undefined") {
-                console.log("[LOG] [Parceria] Tentando carregar logo:", imgPath);
-                if (window.location.hostname !== "localhost") {
-                  fetch(imgPath, { method: "HEAD" })
-                    .then(res => {
-                      console.log("[LOG] [Parceria] HEAD status:", res.status, res.statusText);
-                      for (const [k, v] of res.headers.entries()) {
-                        console.log(`[LOG] [Parceria] Header: ${k}: ${v}`);
-                      }
-                      if (res.ok) {
-                        console.log("[LOG] [Parceria] Logo encontrada:", imgPath);
-                      } else {
-                        console.error("[LOG] [Parceria] Logo NÃO encontrada:", imgPath, res.status);
-                      }
-                    })
-                    .catch(err => {
-                      console.error("[LOG] [Parceria] Erro ao buscar logo:", imgPath, err);
-                    });
-                }
-              }
-              return null;
-            })()}
+            {/* Caminho correto da logo principal, sem logs desnecessários */}
             <img
               src="/logo_nome.png"
               alt="ConverseIA Direito"
               className="h-16 drop-shadow-lg"
-                onError={e => {
-                  console.error("[LOG] [Parceria] Erro ao carregar a logo:", e);
-                  // Fallback para outra imagem se falhar (corrigido para TypeScript)
-                  const fallback = "/logo.png";
-                  const img = e.target as HTMLImageElement;
-                  if (img && img.src && !img.src.endsWith(fallback)) {
-                    console.warn("[LOG] [Parceria] Tentando fallback:", fallback);
-                    img.src = fallback;
-                  }
-                }}
-              onLoad={() => {
-                console.log("[LOG] [Parceria] Logo carregada com sucesso");
+              onError={e => {
+                const fallback = "/logo.png";
+                const img = e.target as HTMLImageElement;
+                if (img && img.src && !img.src.endsWith(fallback)) {
+                  img.src = fallback;
+                }
               }}
             />
           </div>
@@ -232,7 +203,13 @@ export default function Partnership() {
                       <span className="text-6xl font-bold text-white/40 mb-8">{step.number}</span>
                       <span className="flex items-center justify-center w-16 h-16 rounded-xl bg-white/10 mb-4">
                         <Icon className="w-10 h-10 text-white/80" />
-                        <img src="/logotodabracahorizontal.png" alt="ConverseIA Direito" className="h-16 drop-shadow-lg" />
+                        <img src="/logo_nome.png" alt="ConverseIA Direito" className="h-16 drop-shadow-lg" onError={e => {
+                          const fallback = "/logo.png";
+                          const img = e.target as HTMLImageElement;
+                          if (img && img.src && !img.src.endsWith(fallback)) {
+                            img.src = fallback;
+                          }
+                        }} />
                       </span>
                       <span className="text-white/80 text-sm font-medium tracking-wide">Passo {step.number}</span>
                     </div>
