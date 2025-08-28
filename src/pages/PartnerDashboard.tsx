@@ -205,7 +205,7 @@ export default function PartnerDashboard() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src="/logo_nome.png" alt="ConverseIA Direito" className="w-10 h-10 mr-3" onError={e => {
+              <img src="/logo.png" alt="ConverseIA Direito" className="w-10 h-10 mr-3" onError={e => {
                 const fallback = "/logo.png";
                 const img = e.target as HTMLImageElement;
                 if (img && img.src && !img.src.endsWith(fallback)) {

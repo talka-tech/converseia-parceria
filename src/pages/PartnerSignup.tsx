@@ -113,7 +113,7 @@ export default function PartnerSignup() {
         <div className="max-w-2xl mx-auto">
           <Card className="border-2 shadow-lg bg-[#151d2b]/80 border-blue-700/40 text-white">
             <CardHeader className="text-center">
-              <img src="/logo_nome.png" alt="ConverseIA Direito" className="w-16 h-16 mx-auto mb-4" onError={e => {
+              <img src="/logo.png" alt="ConverseIA Direito" className="w-16 h-16 mx-auto mb-4" onError={e => {
                 const fallback = "/logo.png";
                 const img = e.target as HTMLImageElement;
                 if (img && img.src && !img.src.endsWith(fallback)) {

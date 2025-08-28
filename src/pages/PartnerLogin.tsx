@@ -66,7 +66,7 @@ export default function PartnerLogin() {
       <div className="w-full max-w-md px-4 py-10">
         <div className="bg-[#151d2b]/90 rounded-2xl shadow-xl border border-blue-700/40 p-8">
           <div className="flex flex-col items-center mb-6">
-            <img src="/logo_nome.png" alt="ConverseIA Direito" className="w-16 h-16 mb-4" onError={e => {
+            <img src="/logo.png" alt="ConverseIA Direito" className="w-16 h-16 mb-4" onError={e => {
               const fallback = "/logo.png";
               const img = e.target as HTMLImageElement;
               if (img && img.src && !img.src.endsWith(fallback)) {
