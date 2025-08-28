@@ -48,6 +48,16 @@ interface PaymentMethod {
   created_at: string;
 }
 
+interface Client {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+}
+
+const CLIENT_BASE_PRICE = 499.90;
+const PARTNER_DISCOUNT = 0.7; // 70% de desconto
+
 export default function PartnerDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -62,6 +72,13 @@ export default function PartnerDashboard() {
     account: '',
     account_type: 'corrente'
   });
+
+  // --- Estado e lógica para clientes ---
+  const [clients, setClients] = useState<Client[]>([]);
+  const [newClient, setNewClient] = useState<Client>({ name: '', email: '', phone: '', company: '' });
+
+  // Preço do cliente com desconto de parceiro
+  const clientPrice = CLIENT_BASE_PRICE * (1 - PARTNER_DISCOUNT);
 
   useEffect(() => {
     const data = localStorage.getItem('partnerData');
@@ -197,6 +214,33 @@ export default function PartnerDashboard() {
     { title: "Materiais de Marketing", type: "ZIP", icon: Download }
   ];
 
+  async function handleAddClient() {
+    if (!newClient.name || !newClient.email) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha nome e email do cliente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Simulação de cadastro local (substitua por chamada à API se necessário)
+      setClients(prev => [...prev, newClient]);
+      setNewClient({ name: '', email: '', phone: '', company: '' });
+
+      toast({
+        title: "Cliente cadastrado",
+        description: "Cliente cadastrado com sucesso! Realize o pagamento para ativar.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível cadastrar o cliente.",
+        variant: "destructive"
+      });
+    }
+  }
   return (
   <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       
@@ -316,12 +360,92 @@ export default function PartnerDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
+          <TabsList className="grid w-full grid-cols-5 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
             <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Visão Geral</TabsTrigger>
             <TabsTrigger value="resources" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Recursos</TabsTrigger>
+            <TabsTrigger value="clients" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Clientes</TabsTrigger>
             <TabsTrigger value="payments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Pagamentos</TabsTrigger>
             <TabsTrigger value="support" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Suporte</TabsTrigger>
           </TabsList>
+          {/* Nova aba de Clientes */}
+          <TabsContent value="clients" className="space-y-6">
+            <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
+              <CardHeader>
+                <CardTitle>Adicionar Novo Cliente</CardTitle>
+                <p className="text-blue-100 mt-2">Cadastre um novo cliente e realize o pagamento pré-pago com desconto de parceiro.</p>
+              </CardHeader>
+              <CardContent>
+                {/* Formulário de novo cliente */}
+                <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleAddClient(); }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Nome do Cliente</Label>
+                      <Input required value={newClient.name} onChange={e => setNewClient(prev => ({...prev, name: e.target.value}))} placeholder="Nome completo" />
+                    </div>
+                    <div>
+                      <Label>Email do Cliente</Label>
+                      <Input required type="email" value={newClient.email} onChange={e => setNewClient(prev => ({...prev, email: e.target.value}))} placeholder="email@cliente.com" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Telefone</Label>
+                      <Input value={newClient.phone} onChange={e => setNewClient(prev => ({...prev, phone: e.target.value}))} placeholder="(99) 99999-9999" />
+                    </div>
+                    <div>
+                      <Label>Empresa</Label>
+                      <Input value={newClient.company} onChange={e => setNewClient(prev => ({...prev, company: e.target.value}))} placeholder="Nome da empresa" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="text-blue-200 text-lg font-semibold">Valor a pagar:</span>
+                    <span className="text-2xl font-bold text-blue-400">R$ {clientPrice.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 ml-2">Desconto parceiro</Badge>
+                  </div>
+                  <Button type="submit" variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white mt-4">Pagar e Cadastrar Cliente</Button>
+                </form>
+              </CardContent>
+            </Card>
+            <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
+              <CardHeader>
+                <CardTitle>Clientes Cadastrados</CardTitle>
+                <p className="text-blue-100 mt-2">Veja todos os clientes cadastrados por você.</p>
+              </CardHeader>
+              <CardContent>
+                {clients.length === 0 ? (
+                  <div className="text-center py-8 text-blue-200">Nenhum cliente cadastrado ainda.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
+                      <thead>
+                        <tr className="text-blue-300 border-b border-blue-700/40">
+                          <th className="py-2 px-4">Nome</th>
+                          <th className="py-2 px-4">Email</th>
+                          <th className="py-2 px-4">Telefone</th>
+                          <th className="py-2 px-4">Empresa</th>
+                          <th className="py-2 px-4">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {clients.map((c, i) => (
+                          <tr key={i} className="border-b border-blue-800/30">
+                          <td className="py-2 px-4">{c.name}</td>
+                          <td className="py-2 px-4">{c.email}</td>
+                          <td className="py-2 px-4">{c.phone}</td>
+                          <td className="py-2 px-4">{c.company}</td>
+                          <td className="py-2 px-4">
+                            <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">Ativo</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

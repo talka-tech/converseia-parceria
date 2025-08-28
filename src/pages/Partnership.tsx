@@ -89,7 +89,7 @@ export default function Partnership() {
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-16">
             <div className="p-8 rounded-2xl bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 hover:scale-105 transition-transform">
-              <div className="text-4xl font-extrabold text-blue-400 mb-2 drop-shadow-glow">30-50%</div>
+              <div className="text-4xl font-extrabold text-blue-400 mb-2 drop-shadow-glow">30%</div>
               <h3 className="text-xl font-semibold mb-2 text-white">Comissão por Venda</h3>
               <p className="text-blue-200/80">Em todas as vendas e renovações</p>
             </div>
@@ -121,7 +121,7 @@ export default function Partnership() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Benefits Cards */}
+            {/* Benefits Cards com efeito flip */}
             {[
               { icon: DollarSign, title: "Ganhos Exponenciais", description: "Comissão de 30% em todas as vendas e renovações. Ao atingir R$ 50.000 em faturamento, sua comissão sobe para 50%, garantindo uma receita passiva e crescente. Além disso, ganhe comissões em todos os novos produtos e cross-sells que oferecermos.", badge: "Receita Recorrente" },
               { icon: Brain, title: "Monetização da Expertise", description: "Você não é apenas um revendedor. Ofereça serviços de alto valor como configuração de fluxos de atendimento, criação de scripts de qualificação jurídica e treinamento de equipes. Defina seus próprios preços e fique com 100% dessa receita.", badge: "100% Seu Lucro" },
@@ -132,20 +132,31 @@ export default function Partnership() {
             ].map((benefit, index) => {
               const Icon = benefit.icon;
               return (
-                <Card key={index} className="h-full bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 hover:scale-105 hover:border-blue-400/40 transition-all duration-300 text-white">
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-4">
-                      <Icon className="w-10 h-10 text-blue-500 drop-shadow" />
-                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40">
+                <div key={index} className="[perspective:1200px]">
+                  <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 w-full transition-transform duration-500 [transform-style:preserve-3d] group hover:[transform:rotateY(180deg)] cursor-pointer">
+                    {/* Frente do card: ícone, título e badge */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl [backface-visibility:hidden] p-6">
+                      <Icon className="w-12 h-12 md:w-14 md:h-14 text-blue-500 drop-shadow mb-4" />
+                      <span className="text-xl md:text-2xl font-bold text-blue-100 drop-shadow-glow text-center mb-2 px-2">{benefit.title}</span>
+                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 mt-2 text-sm px-3 py-1">
                         {benefit.badge}
                       </Badge>
                     </div>
-                    <CardTitle className="text-xl text-blue-100 drop-shadow-glow">{benefit.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-blue-200/90 leading-relaxed">{benefit.description}</p>
-                  </CardContent>
-                </Card>
+                    {/* Verso do card: conteúdo completo */}
+                    <div className="absolute inset-0 flex flex-col justify-between bg-[#101828]/90 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl p-6 [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                      <div className="flex items-start justify-between mb-2">
+                        <Icon className="w-8 h-8 text-blue-500 drop-shadow" />
+                        <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40">
+                          {benefit.badge}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="block text-lg font-semibold text-blue-100 mb-2">{benefit.title}</span>
+                        <p className="text-blue-200/90 text-sm leading-relaxed">{benefit.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -162,73 +173,43 @@ export default function Partnership() {
               Um programa estruturado para maximizar seus ganhos e construir um negócio sustentável no setor de tecnologia jurídica.
             </p>
           </div>
-          <div className="space-y-12 mb-20">
-            {/* Steps Cards - novo estilo padronizado */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            {/* Steps Cards - visual mais leve */}
             {[
               {
                 icon: Target,
                 number: "01",
-                title: "Ganhe com Cada Venda (e depois dela)",
-                description: "Você recebe uma comissão de 30% em todas as vendas que realizar. Ao atingir o marco de R$ 50.000 em faturamento, essa taxa salta para 50%. Suas renovações se transformam em receita sustentável, e você também ganha comissões em todos os novos produtos e cross-sells que lançarmos.",
-                note: "As comissões são pagas mensalmente e você tem acesso a relatórios detalhados de performance no Portal de Parceiros."
+                title: "Ganhe com Cada Venda",
+                summary: "Comissão de 30% em todas as vendas. Ao atingir R$ 50.000 em vendas, sua comissão sobe para 50%. Renovações e novos produtos também geram receita.",
+                note: "Acompanhe tudo pelo Portal de Parceiros."
               },
               {
                 icon: Wrench,
                 number: "02",
-                title: "Monetize seu Conhecimento Jurídico e Técnico",
-                description: "Você é um especialista. Use isso a seu favor. Ofereça serviços de implementação, como:",
-                services: [
-                  "Desenho e configuração do funil de atendimento via WhatsApp",
-                  "Criação de scripts para qualificação automática de casos (Cível, Trabalhista, Previdenciário, etc.)",
-                  "Integração com CRMs e sistemas de gestão do escritório",
-                  "Treinamento para a equipe interna do seu cliente"
-                ],
-                note: "O valor desses serviços é definido por você, e o lucro é 100% seu."
+                title: "Monetize sua Expertise",
+                summary: "Ofereça serviços de implementação, integração e treinamento para escritórios jurídicos. Defina seu preço e fique com 100% do valor.",
+                note: "Você é dono do seu lucro."
               },
               {
                 icon: Building,
                 number: "03",
-                title: "Acesso a Inovações Constantes",
-                description: "Fabricamos constantemente novos produtos, automações e inovações para o setor jurídico. Como parceiro, você terá acesso prioritário a todos os lançamentos, poderá oferecer cross-sells aos seus clientes e será comissionado por cada nova solução vendida. Além disso, você recebe 70% de desconto na plataforma para demonstrações.",
-                cta: "Se você é apaixonado por eficiência, tecnologia e pelo futuro do Direito, chegou a hora de fazer parceria com a ConverseIA Direito."
+                title: "Acesso a Inovações",
+                summary: "Tenha acesso antecipado a novos produtos e automações. Ofereça novidades aos clientes e aproveite 70% de desconto para demonstrações.",
+                note: "Seja referência em tecnologia jurídica."
               }
             ].map((step, index) => {
               const Icon = step.icon;
               return (
-                <div key={index} className="flex flex-col lg:flex-row overflow-hidden rounded-2xl shadow-xl shadow-blue-900/20 border border-blue-700/40 bg-[#101828]/80 hover:scale-[1.02] hover:border-blue-400/40 transition-all duration-300">
-                  {/* Lado esquerdo: gradiente azul, número, ícone, badge */}
-                  <div className="lg:w-1/3 flex flex-col items-center justify-center py-12 px-6 bg-blue-600 relative">
-                    <span className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none" />
-                    <div className="relative z-10 flex flex-col items-center">
-                      <span className="text-6xl font-bold text-white/40 mb-8">{step.number}</span>
-                      <span className="flex items-center justify-center w-16 h-16 rounded-xl bg-white/10 mb-4">
-                        <Icon className="w-10 h-10 text-white/80" />
-                      </span>
-                      <span className="text-white/80 text-sm font-medium tracking-wide">Passo {step.number}</span>
+                <div key={index} className="flex flex-col items-center text-center bg-[#101828]/80 border border-blue-700/40 rounded-2xl shadow-xl shadow-blue-900/20 p-8 hover:scale-[1.03] hover:border-blue-400/40 transition-all duration-300">
+                  <div className="flex flex-col items-center mb-4">
+                    <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-blue-600/10 mb-2">
+                      <Icon className="w-10 h-10 text-blue-400" />
                     </div>
+                    <span className="text-blue-400 font-bold text-lg mb-1">Passo {step.number}</span>
                   </div>
-                  {/* Lado direito: conteúdo */}
-                  <div className="lg:w-2/3 flex flex-col justify-center p-8">
-                    <h3 className="text-2xl font-bold text-white mb-4">{step.title}</h3>
-                    <p className="text-blue-100 text-lg leading-relaxed mb-4">{step.description}</p>
-                    {step.services && (
-                      <ul className="list-disc list-inside text-blue-100 mb-4 pl-2">
-                        {step.services.map((service, i) => (
-                          <li key={i}>{service}</li>
-                        ))}
-                      </ul>
-                    )}
-                    {step.note && (
-                      <div className="bg-blue-900/60 p-4 rounded-lg border-l-4 border-blue-400 mt-2">
-                        <span className="font-semibold text-white">Observação:</span> <span className="text-blue-100">{step.note}</span>
-                      </div>
-                    )}
-                    {step.cta && (
-                      <div className="bg-blue-900/60 p-4 rounded-lg border-l-4 border-blue-400 mt-2">
-                        <span className="text-blue-100">{step.cta}</span>
-                      </div>
-                    )}
-                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+                  <p className="text-blue-100 text-base mb-3">{step.summary}</p>
+                  <span className="text-blue-300 text-xs font-medium bg-blue-900/40 rounded px-3 py-1 mt-auto">{step.note}</span>
                 </div>
               );
             })}
