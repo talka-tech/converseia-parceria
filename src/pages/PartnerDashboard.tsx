@@ -205,7 +205,13 @@ export default function PartnerDashboard() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src="/iconecomaprincipalcornalogoefundobranco.png" alt="ConverseIA Direito" className="w-10 h-10 mr-3" />
+              <img src="/logo_nome.png" alt="ConverseIA Direito" className="w-10 h-10 mr-3" onError={e => {
+                const fallback = "/logo.png";
+                const img = e.target as HTMLImageElement;
+                if (img && img.src && !img.src.endsWith(fallback)) {
+                  img.src = fallback;
+                }
+              }} />
               <div>
                 <h1 className="text-xl font-bold">ConverseIA Direito</h1>
                 <p className="text-sm text-muted-foreground">Painel do Parceiro</p>
