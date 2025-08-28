@@ -80,13 +80,13 @@ export default function Partnership() {
               return null;
             })()}
             <img
-              src="/converseia-logo-horizontal.png"
+              src="/logo_nome.png"
               alt="ConverseIA Direito"
               className="h-16 drop-shadow-lg"
                 onError={e => {
                   console.error("[LOG] [Parceria] Erro ao carregar a logo:", e);
                   // Fallback para outra imagem se falhar (corrigido para TypeScript)
-                  const fallback = "/converseia-logo.png";
+                  const fallback = "/logo.png";
                   const img = e.target as HTMLImageElement;
                   if (img && img.src && !img.src.endsWith(fallback)) {
                     console.warn("[LOG] [Parceria] Tentando fallback:", fallback);
