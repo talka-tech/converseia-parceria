@@ -54,37 +54,47 @@ export default function Partnership() {
         `}</style>
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="flex items-center justify-center mb-8">
-            {/* Log para depuração do carregamento da imagem */}
+            {/* Logs gerais para depuração do carregamento da logo */}
             {(() => {
-              const imgPath = "/logotodabracahorizontal.png";
+              const imgPath = "/converseia-logo-horizontal.png";
               if (typeof window !== "undefined") {
-                console.log("[LOG] Tentando carregar logo:", imgPath);
-                // Testa se o arquivo existe via fetch (apenas em produção)
+                console.log("[LOG] [Parceria] Tentando carregar logo:", imgPath);
                 if (window.location.hostname !== "localhost") {
                   fetch(imgPath, { method: "HEAD" })
                     .then(res => {
+                      console.log("[LOG] [Parceria] HEAD status:", res.status, res.statusText);
+                      for (const [k, v] of res.headers.entries()) {
+                        console.log(`[LOG] [Parceria] Header: ${k}: ${v}`);
+                      }
                       if (res.ok) {
-                        console.log("[LOG] Logo encontrado:", imgPath);
+                        console.log("[LOG] [Parceria] Logo encontrada:", imgPath);
                       } else {
-                        console.error("[LOG] Logo NÃO encontrado:", imgPath, res.status);
+                        console.error("[LOG] [Parceria] Logo NÃO encontrada:", imgPath, res.status);
                       }
                     })
                     .catch(err => {
-                      console.error("[LOG] Erro ao buscar logo:", imgPath, err);
+                      console.error("[LOG] [Parceria] Erro ao buscar logo:", imgPath, err);
                     });
                 }
               }
               return null;
             })()}
             <img
-              src="/logotodabracahorizontal.png"
+              src="/converseia-logo-horizontal.png"
               alt="ConverseIA Direito"
               className="h-16 drop-shadow-lg"
               onError={e => {
-                console.error("[LOG] Erro ao carregar a logo:", e);
+                console.error("[LOG] [Parceria] Erro ao carregar a logo:", e);
+                // Fallback para outra imagem se falhar
+                const fallback = "/converseia-logo.png";
+                const target = e.target as HTMLImageElement;
+                if (target && !target.src.endsWith(fallback)) {
+                  console.warn("[LOG] [Parceria] Tentando fallback:", fallback);
+                  target.src = fallback;
+                }
               }}
               onLoad={() => {
-                console.log("[LOG] Logo carregada com sucesso");
+                console.log("[LOG] [Parceria] Logo carregada com sucesso");
               }}
             />
           </div>
