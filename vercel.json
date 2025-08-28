@@ -1,6 +1,7 @@
 {
   "version": 2,
   "routes": [
+    { "src": "/(logo_nome\\.png|logo\\.png|placeholder\\.svg|robots\\.txt)$", "dest": "/$1" },
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
