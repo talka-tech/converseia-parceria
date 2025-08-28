@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "api/upload-csv-chunk.ts": {
+      "maxDuration": 300,
+      "memory": 3008
+    }
+  },
+  "routes": [
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

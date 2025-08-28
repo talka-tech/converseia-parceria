@@ -1,24 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Mail, KeyRound } from "lucide-react";
-import { Link } from "react-router-dom";
-
-// URL da sua API. O Vite substitui esta variável pelo valor no seu .env ou configuração do Render
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { useNavigate, Link } from "react-router-dom";
+import { Mail, KeyRound, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function PartnerLogin() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -27,37 +19,38 @@ export default function PartnerLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
-      const response = await fetch(`${API_URL}/api/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Falha ao realizar o login.');
+      if (error) {
+        if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
+          toast({
+            title: "Confirme seu e-mail",
+            description: "Você precisa confirmar seu e-mail antes de acessar. Verifique sua caixa de entrada e spam para o link de confirmação.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erro no login",
+            description: error.message || "Credenciais inválidas. Verifique seu e-mail e senha.",
+            variant: "destructive"
+          });
+        }
+        return;
       }
-
+      if (!data.user) throw new Error("Usuário não encontrado ou senha incorreta.");
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando para o seu painel...",
         variant: "default"
       });
-
-      // Salva os dados do usuário para simular a sessão
-      localStorage.setItem('partnerData', JSON.stringify(result.user));
-      
+      localStorage.setItem('partnerData', JSON.stringify(data.user));
       setTimeout(() => {
         navigate('/parceria/painel');
       }, 1500);
-
     } catch (error: any) {
-      console.error("Erro no login:", error);
       toast({
         title: "Erro no login",
         description: error.message || "Credenciais inválidas. Verifique seu e-mail e senha.",
@@ -69,46 +62,71 @@ export default function PartnerLogin() {
   };
 
   return (
-  <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white flex items-center justify-center">
-      <div className="container mx-auto px-6 py-8">
-        <div className="max-w-md mx-auto">
-          <Card className="border-2 shadow-lg bg-[#151d2b]/80 border-blue-700/40 text-white">
-            <CardHeader className="text-center">
-              <img src="/iconecomaprincipalcornalogoefundobranco.png" alt="ConverseIA Direito" className="w-16 h-16 mx-auto mb-4" />
-              <CardTitle className="text-3xl">Acesse sua Conta</CardTitle>
-              <p className="text-muted-foreground pt-2">
-                Não tem uma conta?{" "}
-                <Link to="/parceria/cadastro" className="text-primary font-semibold hover:underline">
-                  Cadastre-se
-                </Link>
-              </p>
-            </CardHeader>
-            
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} placeholder="seu@email.com" required className="pl-10" />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="password">Senha</Label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input id="password" type="password" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} placeholder="Sua senha" required className="pl-10" />
-                  </div>
-                </div>
-
-                <Button type="submit" variant="hero" size="lg" className="w-full text-lg py-6 mt-6" disabled={isLoading}>
-                  {isLoading ? "Entrando..." : "Entrar"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
+      <div className="w-full max-w-md px-4 py-10">
+        <div className="bg-[#151d2b]/90 rounded-2xl shadow-xl border border-blue-700/40 p-8">
+          <div className="flex flex-col items-center mb-6">
+            <img src="/iconecomaprincipalcornalogoefundobranco.png" alt="ConverseIA Direito" className="w-16 h-16 mb-4" />
+            <h1 className="text-3xl font-bold mb-1">Acesse sua Conta</h1>
+            <p className="text-muted-foreground text-sm">
+              Não tem uma conta?{' '}
+              <Link to="/parceria/cadastro" className="text-primary font-semibold hover:underline">Cadastre-se</Link>
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={e => handleInputChange('email', e.target.value)}
+                  placeholder="seu@email.com"
+                  required
+                  autoComplete="username"
+                  className="pl-10 pr-4 h-14 w-full rounded-lg border border-white bg-[#151d2b] text-white caret-white placeholder:text-slate-300 placeholder:opacity-90 focus:bg-[#151d2b] focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  style={{ color: '#fff', background: '#151d2b', border: '1px solid #fff', height: '56px', borderRadius: '0.5rem' }}
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium mb-1">Senha</label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={e => handleInputChange('password', e.target.value)}
+                  placeholder="Sua senha"
+                  required
+                  autoComplete="current-password"
+                  className="pl-10 pr-10 h-14 w-full rounded-lg border border-white bg-[#151d2b] text-white caret-white placeholder:text-slate-300 placeholder:opacity-90 focus:bg-[#151d2b] focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  style={{ color: '#fff', background: '#151d2b', border: '1px solid #fff', height: '56px', borderRadius: '0.5rem' }}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary focus:outline-none"
+                  tabIndex={0}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="hero"
+              size="lg"
+              className="w-full text-lg py-6 mt-2"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Entrando...' : 'Entrar'}
+            </Button>
+          </form>
         </div>
       </div>
     </div>

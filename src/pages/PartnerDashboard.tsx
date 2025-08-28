@@ -201,7 +201,7 @@ export default function PartnerDashboard() {
   <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       
       {/* Header */}
-  <header className="border-b bg-[#151d2b]/80 backdrop-blur-sm">
+  <header className="border-b bg-[#151d2b]/90 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -221,7 +221,7 @@ export default function PartnerDashboard() {
                 <p className="font-medium">{partnerData.name}</p>
                 <p className="text-sm text-muted-foreground">{partnerData.companyName}</p>
               </div>
-              <Button variant="outline" onClick={handleLogout}>Sair</Button>
+              <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white border-none" onClick={handleLogout}>Sair</Button>
             </div>
           </div>
         </div>
@@ -241,67 +241,67 @@ export default function PartnerDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
+          <Card className="bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vendas Totais</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-100">Vendas Totais</CardTitle>
+              <DollarSign className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {salesData.totalSales.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Este mês</p>
+              <div className="text-2xl font-bold text-white">R$ {salesData.totalSales.toLocaleString()}</div>
+              <p className="text-xs text-blue-100">Este mês</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
+          <Card className="bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Comissão Atual</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-100">Comissão Atual</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">30%</div>
-              <p className="text-xs text-muted-foreground">Próximo nível: 50%</p>
+              <div className="text-2xl font-bold text-blue-400">30%</div>
+              <p className="text-xs text-blue-100">Próximo nível: 50%</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
+          <Card className="bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-100">Clientes Ativos</CardTitle>
+              <Users className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">Escritórios atendidos</p>
+              <div className="text-2xl font-bold text-white">0</div>
+              <p className="text-xs text-blue-100">Escritórios atendidos</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
+          <Card className="bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Próxima Meta</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-100">Próxima Meta</CardTitle>
+              <Target className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ 50k</div>
-              <p className="text-xs text-muted-foreground">Para comissão 50%</p>
+              <div className="text-2xl font-bold text-white">R$ 50k</div>
+              <p className="text-xs text-blue-100">Para comissão 50%</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Progress to Next Tier */}
-  <Card className="mb-8 bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20">
+  <Card className="mb-8 bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Zap className="w-5 h-5 text-primary mr-2" />
+            <CardTitle className="flex items-center text-white">
+              <Zap className="w-5 h-5 text-blue-400 mr-2" />
               Progresso para Próximo Nível
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm text-blue-100">
                 <span>R$ {salesData.totalSales}</span>
                 <span>R$ {salesData.nextTier.toLocaleString()}</span>
               </div>
               <Progress value={(salesData.totalSales / salesData.nextTier) * 100} className="h-3" />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-blue-100">
                 Você precisa de mais R$ {(salesData.nextTier - salesData.totalSales).toLocaleString()} em vendas para atingir comissão de 50%
               </p>
             </div>
@@ -310,80 +310,76 @@ export default function PartnerDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="resources">Recursos</TabsTrigger>
-            <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-            <TabsTrigger value="support">Suporte</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Visão Geral</TabsTrigger>
+            <TabsTrigger value="resources" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Recursos</TabsTrigger>
+            <TabsTrigger value="payments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Pagamentos</TabsTrigger>
+            <TabsTrigger value="support" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Suporte</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
-              <Card>
+              <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
                 <CardHeader>
                   <CardTitle>Primeiros Passos</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center p-4 border rounded-lg">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-primary font-bold">1</span>
+                  <div className="flex items-center p-4 border border-blue-700/40 rounded-lg bg-[#101828]/80">
+                    <div className="w-8 h-8 bg-blue-600/80 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-white font-bold">1</span>
                     </div>
                     <div>
-                      <p className="font-medium">Baixar Kit de Vendas</p>
-                      <p className="text-sm text-muted-foreground">Materiais essenciais para apresentações</p>
+                      <p className="font-medium text-white">Baixar Kit de Vendas</p>
+                      <p className="text-sm text-blue-200">Materiais essenciais para apresentações</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center p-4 border rounded-lg">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-primary font-bold">2</span>
+                  <div className="flex items-center p-4 border border-blue-700/40 rounded-lg bg-[#101828]/80">
+                    <div className="w-8 h-8 bg-blue-600/80 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-white font-bold">2</span>
                     </div>
                     <div>
-                      <p className="font-medium">Configurar sua conta com desconto</p>
-                      <p className="text-sm text-muted-foreground">70% de desconto para demonstrações</p>
+                      <p className="font-medium text-white">Configurar sua conta com desconto</p>
+                      <p className="text-sm text-blue-200">70% de desconto para demonstrações</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center p-4 border rounded-lg">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-primary font-bold">3</span>
+                  <div className="flex items-center p-4 border border-blue-700/40 rounded-lg bg-[#101828]/80">
+                    <div className="w-8 h-8 bg-blue-600/80 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-white font-bold">3</span>
                     </div>
                     <div>
-                      <p className="font-medium">Contatar primeiro lead</p>
-                      <p className="text-sm text-muted-foreground">Começar vendas qualificadas</p>
+                      <p className="font-medium text-white">Contatar primeiro lead</p>
+                      <p className="text-sm text-blue-200">Começar vendas qualificadas</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
                 <CardHeader>
                   <CardTitle>Estrutura de Comissões</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Comissão Padrão</span>
-                      <Badge variant="secondary" className="bg-primary/10 text-primary">30%</Badge>
+                      <span className="font-medium text-white">Comissão Padrão</span>
+                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">30%</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Em todas as vendas e renovações</p>
+                    <p className="text-sm text-blue-200">Em todas as vendas e renovações</p>
                   </div>
-                  
-                  <div className="p-4 bg-muted/50 border rounded-lg">
+                  <div className="p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Desconto Plataforma</span>
-                      <Badge variant="secondary">70%</Badge>
+                      <span className="font-medium text-white">Desconto Plataforma</span>
+                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">70%</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Para demonstrações aos clientes</p>
+                    <p className="text-sm text-blue-200">Para demonstrações aos clientes</p>
                   </div>
-                  
-                  <div className="p-4 bg-success/5 border border-success/20 rounded-lg">
+                  <div className="p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Após R$ 50k</span>
-                      <Badge variant="secondary" className="bg-success/10 text-success">50%</Badge>
+                      <span className="font-medium text-white">Após R$ 50k</span>
+                      <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">50%</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Comissão premium permanente</p>
+                    <p className="text-sm text-green-200">Comissão premium permanente</p>
                   </div>
                 </CardContent>
               </Card>
@@ -395,16 +391,16 @@ export default function PartnerDashboard() {
               {resources.map((resource, index) => {
                 const Icon = resource.icon;
                 return (
-                  <Card key={index} className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  <Card key={index} className="bg-[#101828]/90 border border-blue-700/40 hover:shadow-lg transition-all duration-300 cursor-pointer text-white">
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <Icon className="w-8 h-8 text-primary" />
-                        <Badge variant="outline">{resource.type}</Badge>
+                        <Icon className="w-8 h-8 text-blue-400" />
+                        <Badge variant="outline" className="border-blue-600/40 text-blue-300">{resource.type}</Badge>
                       </div>
-                      <CardTitle className="text-lg">{resource.title}</CardTitle>
+                      <CardTitle className="text-lg text-white">{resource.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Button variant="outline" className="w-full">
+                      <Button variant="hero" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                         <Download className="w-4 h-4 mr-2" />
                         Baixar
                       </Button>
@@ -418,16 +414,16 @@ export default function PartnerDashboard() {
           <TabsContent value="payments" className="space-y-6">
             
             {/* Métodos de Pagamento */}
-            <Card>
+            <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Métodos de Pagamento</CardTitle>
-                    <p className="text-muted-foreground">
+                    <p className="text-blue-100">
                       Configure como deseja receber suas comissões
                     </p>
                   </div>
-                  <Button onClick={() => setShowAddPayment(true)}>
+                  <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowAddPayment(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Método
                   </Button>
@@ -436,12 +432,12 @@ export default function PartnerDashboard() {
               <CardContent>
                 {paymentMethods.length === 0 ? (
                   <div className="text-center py-12">
-                    <CreditCard className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <CreditCard className="w-16 h-16 text-blue-100 mx-auto mb-4" />
                     <h3 className="text-xl font-medium mb-2">Nenhum método cadastrado</h3>
-                    <p className="text-muted-foreground mb-6">
+                    <p className="text-blue-100 mb-6">
                       Adicione um método de pagamento para receber suas comissões.
                     </p>
-                    <Button onClick={() => setShowAddPayment(true)}>
+                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowAddPayment(true)}>
                       <Plus className="w-4 h-4 mr-2" />
                       Adicionar Primeiro Método
                     </Button>
@@ -468,7 +464,7 @@ export default function PartnerDashboard() {
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-blue-100">
                               {method.method_type === 'pix' 
                                 ? `Chave: ${method.details.pix_key}` 
                                 : `${method.details.bank} - Ag: ${method.details.agency}`
@@ -477,8 +473,9 @@ export default function PartnerDashboard() {
                           </div>
                         </div>
                         <Button 
-                          variant="outline" 
+                          variant="destructive" 
                           size="sm"
+                          className="bg-red-700 hover:bg-red-800 text-white border-none"
                           onClick={() => handleDeletePaymentMethod(method.id)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -490,7 +487,7 @@ export default function PartnerDashboard() {
 
                 {/* Formulário para adicionar método */}
                 {showAddPayment && (
-                  <div className="mt-6 p-6 border rounded-lg bg-muted/30">
+                  <div className="mt-6 p-6 border border-blue-700/40 rounded-lg bg-[#101828]/80 text-white">
                     <h4 className="font-medium mb-4">Adicionar Método de Pagamento</h4>
                     
                     <div className="space-y-4">
@@ -580,10 +577,10 @@ export default function PartnerDashboard() {
                       )}
 
                       <div className="flex gap-2">
-                        <Button onClick={handleAddPaymentMethod}>
+                        <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleAddPaymentMethod}>
                           Adicionar
                         </Button>
-                        <Button variant="outline" onClick={() => setShowAddPayment(false)}>
+                        <Button variant="outline" className="border-blue-700/40 text-blue-300" onClick={() => setShowAddPayment(false)}>
                           Cancelar
                         </Button>
                       </div>
@@ -597,7 +594,7 @@ export default function PartnerDashboard() {
           <TabsContent value="support" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              <Card>
+              <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
                 <CardHeader>
                   <CardTitle>Contatos de Suporte</CardTitle>
                 </CardHeader>
@@ -605,18 +602,18 @@ export default function PartnerDashboard() {
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Equipe de Parcerias</h4>
                     <p className="text-sm text-muted-foreground mb-2">Para questões sobre vendas e comissões</p>
-                    <Button variant="outline" size="sm">Entrar em Contato</Button>
+                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Entrar em Contato</Button>
                   </div>
                   
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Suporte Técnico</h4>
                     <p className="text-sm text-muted-foreground mb-2">Ajuda com a plataforma e implementação</p>
-                    <Button variant="outline" size="sm">Abrir Ticket</Button>
+                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Abrir Ticket</Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
                 <CardHeader>
                   <CardTitle>Treinamentos</CardTitle>
                 </CardHeader>
@@ -624,13 +621,13 @@ export default function PartnerDashboard() {
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Onboarding de Parceiros</h4>
                     <p className="text-sm text-muted-foreground mb-2">Treinamento inicial completo</p>
-                    <Button variant="outline" size="sm">Assistir</Button>
+                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Assistir</Button>
                   </div>
                   
                   <div className="p-4 border rounded-lg">
                     <h4 className="font-medium mb-2">Técnicas de Vendas</h4>
                     <p className="text-sm text-muted-foreground mb-2">Como vender para advogados</p>
-                    <Button variant="outline" size="sm">Assistir</Button>
+                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Assistir</Button>
                   </div>
                 </CardContent>
               </Card>
