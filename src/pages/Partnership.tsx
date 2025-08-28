@@ -83,16 +83,16 @@ export default function Partnership() {
               src="/converseia-logo-horizontal.png"
               alt="ConverseIA Direito"
               className="h-16 drop-shadow-lg"
-              onError={e => {
-                console.error("[LOG] [Parceria] Erro ao carregar a logo:", e);
-                // Fallback para outra imagem se falhar
-                const fallback = "/converseia-logo.png";
-                const target = e.target as HTMLImageElement;
-                if (target && !target.src.endsWith(fallback)) {
-                  console.warn("[LOG] [Parceria] Tentando fallback:", fallback);
-                  target.src = fallback;
-                }
-              }}
+                onError={e => {
+                  console.error("[LOG] [Parceria] Erro ao carregar a logo:", e);
+                  // Fallback para outra imagem se falhar (corrigido para TypeScript)
+                  const fallback = "/converseia-logo.png";
+                  const img = e.target as HTMLImageElement;
+                  if (img && img.src && !img.src.endsWith(fallback)) {
+                    console.warn("[LOG] [Parceria] Tentando fallback:", fallback);
+                    img.src = fallback;
+                  }
+                }}
               onLoad={() => {
                 console.log("[LOG] [Parceria] Logo carregada com sucesso");
               }}
