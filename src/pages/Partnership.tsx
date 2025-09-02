@@ -89,7 +89,7 @@ export default function Partnership() {
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mt-16">
             <div className="p-8 rounded-2xl bg-[#151d2b]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 hover:scale-105 transition-transform">
-              <div className="text-4xl font-extrabold text-blue-400 mb-2 drop-shadow-glow">30%</div>
+              <div className="text-4xl font-extrabold text-blue-400 mb-2 drop-shadow-glow">20%</div>
               <h3 className="text-xl font-semibold mb-2 text-white">Comissão por Venda</h3>
               <p className="text-blue-200/80">Em todas as vendas e renovações</p>
             </div>
@@ -123,7 +123,7 @@ export default function Partnership() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Benefits Cards com efeito flip */}
             {[
-              { icon: DollarSign, title: "Ganhos Exponenciais", description: "Comissão de 30% em todas as vendas e renovações. Ao atingir R$ 50.000 em faturamento, sua comissão sobe para 50%, garantindo uma receita passiva e crescente. Além disso, ganhe comissões em todos os novos produtos e cross-sells que oferecermos.", badge: "Receita Recorrente" },
+              { icon: DollarSign, title: "Ganhos Exponenciais", description: "Comissão de 20% em todas as vendas e renovações. Ao atingir R$ 50.000 em faturamento, sua comissão sobe para 50%, garantindo uma receita passiva e crescente. Além disso, ganhe comissões em todos os novos produtos e cross-sells que oferecermos.", badge: "Receita Recorrente" },
               { icon: Brain, title: "Monetização da Expertise", description: "Você não é apenas um revendedor. Ofereça serviços de alto valor como configuração de fluxos de atendimento, criação de scripts de qualificação jurídica e treinamento de equipes. Defina seus próprios preços e fique com 100% dessa receita.", badge: "100% Seu Lucro" },
               { icon: Users, title: "Leads Jurídicos Qualificados", description: "Nós investimos no seu sucesso. Fornecemos acesso a uma base de advogados e escritórios que já demonstraram interesse na ConverseIA Direito, mas precisam de um especialista para implementar a solução.", badge: "Leads Prontos" },
               { icon: Gift, title: "70% de Desconto na Plataforma", description: "Domine a plataforma com 70% de desconto. Receba acesso à ConverseIA Direito com desconto especial para demonstrações aos clientes, permitindo que você explore todo o potencial da ferramenta e apresente com confiança.", badge: "Acesso com Desconto" },
@@ -132,8 +132,8 @@ export default function Partnership() {
             ].map((benefit, index) => {
               const Icon = benefit.icon;
               return (
-                <div key={index} className="[perspective:1200px]">
-                  <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 w-full transition-transform duration-500 [transform-style:preserve-3d] group hover:[transform:rotateY(180deg)] cursor-pointer">
+                <div key={index} className="h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 [perspective:1000px] group">
+                  <div className="relative w-full h-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] cursor-pointer">
                     {/* Frente do card: ícone, título e badge */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl [backface-visibility:hidden] p-6">
                       <Icon className="w-12 h-12 md:w-14 md:h-14 text-blue-500 drop-shadow mb-4" />
@@ -180,7 +180,7 @@ export default function Partnership() {
                 icon: Target,
                 number: "01",
                 title: "Ganhe com Cada Venda",
-                summary: "Comissão de 30% em todas as vendas. Ao atingir R$ 50.000 em vendas, sua comissão sobe para 50%. Renovações e novos produtos também geram receita.",
+                summary: "Comissão de 20% em todas as vendas. Ao atingir R$ 50.000 em vendas, sua comissão sobe para 50%. Renovações e novos produtos também geram receita.",
                 note: "Acompanhe tudo pelo Portal de Parceiros."
               },
               {

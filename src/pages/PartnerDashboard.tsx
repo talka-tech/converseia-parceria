@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { googleSheetsService, ClientData } from "@/lib/googleSheets";
 import { 
   DollarSign, 
   Users, 
@@ -27,7 +28,11 @@ import {
   Smartphone,
   Plus,
   Trash2,
-  Check
+  Check,
+  Edit3,
+  X,
+  Save,
+  RefreshCw
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -53,140 +58,92 @@ interface Client {
   email: string;
   phone: string;
   company: string;
+  value: number;
+  status: 'pending_payment' | 'pending_implementation' | 'active';
+  implementationPaid: boolean;
 }
 
-const CLIENT_BASE_PRICE = 499.90;
-const PARTNER_DISCOUNT = 0.7; // 70% de desconto
+const IMPLEMENTATION_FEE = 500.00; // Taxa de implantação
 
 export default function PartnerDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [partnerData, setPartnerData] = useState<PartnerData | null>(null);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [showAddPayment, setShowAddPayment] = useState(false);
-  const [newPaymentMethod, setNewPaymentMethod] = useState({
-    method_type: '',
-    pix_key: '',
-    bank: '',
-    agency: '',
-    account: '',
-    account_type: 'corrente'
-  });
+  // --- Estado para métodos de pagamento removido ---
+  // const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  // const [showAddPayment, setShowAddPayment] = useState(false);
+  // const [newPaymentMethod, setNewPaymentMethod] = useState({...});
 
   // --- Estado e lógica para clientes ---
   const [clients, setClients] = useState<Client[]>([]);
-  const [newClient, setNewClient] = useState<Client>({ name: '', email: '', phone: '', company: '' });
+  const [newClient, setNewClient] = useState<Client>({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    company: '', 
+    value: 0, 
+    status: 'pending_payment', 
+    implementationPaid: false 
+  });
+  const [isLoadingClients, setIsLoadingClients] = useState(false);
 
-  // Preço do cliente com desconto de parceiro
-  const clientPrice = CLIENT_BASE_PRICE * (1 - PARTNER_DISCOUNT);
+  // Carregar clientes do Google Sheets
+  const loadClientsFromSheets = async () => {
+    setIsLoadingClients(true);
+    try {
+      const sheetsClients = await googleSheetsService.getClients();
+      // Converter para o formato local (adicionar implementationPaid se não existir)
+      const formattedClients = sheetsClients.map(client => ({
+        ...client,
+        implementationPaid: client.status === 'active'
+      }));
+      setClients(formattedClients);
+      toast({
+        title: "Dados sincronizados",
+        description: "Clientes carregados do Google Sheets com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro de sincronização",
+        description: "Não foi possível carregar dados do Google Sheets.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingClients(false);
+    }
+  };
+
+  // --- Estado para edição de cliente ---
+  const [editingClientIndex, setEditingClientIndex] = useState<number | null>(null);
+  const [editingClient, setEditingClient] = useState<Client>({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    company: '', 
+    value: 0, 
+    status: 'pending_payment', 
+    implementationPaid: false 
+  });
+
+  // Remover clientPrice já que agora o parceiro define o valor
 
   useEffect(() => {
     const data = localStorage.getItem('partnerData');
     if (data) {
       const partner = JSON.parse(data);
       setPartnerData(partner);
-      loadPaymentMethods(partner.id);
+      // Carregar clientes do Google Sheets
+      loadClientsFromSheets();
     } else {
       // Se não há dados do parceiro, redireciona para cadastro
       navigate('/parceria/cadastro');
     }
   }, [navigate]);
 
-  const loadPaymentMethods = async (partnerId: number) => {
-    try {
-      const response = await fetch(`${API_URL}/api/partners/${partnerId}/payment-methods`);
-      if (response.ok) {
-        const methods = await response.json();
-        setPaymentMethods(methods);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar métodos de pagamento:', error);
-    }
-  };
-
-  const handleAddPaymentMethod = async () => {
-    if (!partnerData) return;
-
-    try {
-      let details = {};
-      
-      if (newPaymentMethod.method_type === 'pix') {
-        details = {
-          pix_key: newPaymentMethod.pix_key,
-          bank: newPaymentMethod.bank
-        };
-      } else if (newPaymentMethod.method_type === 'bank_transfer') {
-        details = {
-          bank: newPaymentMethod.bank,
-          agency: newPaymentMethod.agency,
-          account: newPaymentMethod.account,
-          account_type: newPaymentMethod.account_type
-        };
-      }
-
-      const response = await fetch(`${API_URL}/api/partners/${partnerData.id}/payment-methods`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          method_type: newPaymentMethod.method_type,
-          details: details,
-          is_default: paymentMethods.length === 0 // Primeiro método é padrão
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Método de pagamento adicionado",
-          description: "Seu método de pagamento foi cadastrado com sucesso.",
-        });
-        
-        loadPaymentMethods(partnerData.id);
-        setShowAddPayment(false);
-        setNewPaymentMethod({
-          method_type: '',
-          pix_key: '',
-          bank: '',
-          agency: '',
-          account: '',
-          account_type: 'corrente'
-        });
-      } else {
-        throw new Error('Erro ao adicionar método de pagamento');
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível adicionar o método de pagamento.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeletePaymentMethod = async (methodId: number) => {
-    if (!partnerData) return;
-
-    try {
-      const response = await fetch(`${API_URL}/api/partners/${partnerData.id}/payment-methods/${methodId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Método removido",
-          description: "Método de pagamento removido com sucesso.",
-        });
-        loadPaymentMethods(partnerData.id);
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o método de pagamento.",
-        variant: "destructive"
-      });
-    }
-  };
+  // Funções de pagamento removidas
+  // const loadPaymentMethods = async (partnerId: number) => {...}
+  // const handleAddPaymentMethod = async () => {...}
+  // const handleDeletePaymentMethod = async (methodId: number) => {...}
 
   const handleLogout = () => {
     localStorage.removeItem('partnerData');
@@ -215,32 +172,203 @@ export default function PartnerDashboard() {
   ];
 
   async function handleAddClient() {
-    if (!newClient.name || !newClient.email) {
+    if (!newClient.name || !newClient.email || !newClient.value) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha nome e email do cliente.",
+        description: "Preencha nome, email e valor do cliente.",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      // Simulação de cadastro local (substitua por chamada à API se necessário)
-      setClients(prev => [...prev, newClient]);
-      setNewClient({ name: '', email: '', phone: '', company: '' });
+      setIsLoadingClients(true);
+      
+      // Adicionar no Google Sheets
+      const clientData: ClientData = {
+        name: newClient.name,
+        email: newClient.email,
+        phone: newClient.phone,
+        company: newClient.company,
+        value: newClient.value,
+        status: 'pending_payment'
+      };
+      
+      const success = await googleSheetsService.addClient(clientData);
+      
+      if (success) {
+        // Atualizar estado local
+        setClients(prev => [...prev, { ...newClient, status: 'pending_payment' }]);
+        setNewClient({ 
+          name: '', 
+          email: '', 
+          phone: '', 
+          company: '', 
+          value: 0, 
+          status: 'pending_payment', 
+          implementationPaid: false 
+        });
 
-      toast({
-        title: "Cliente cadastrado",
-        description: "Cliente cadastrado com sucesso! Realize o pagamento para ativar.",
-      });
+        toast({
+          title: "Cliente cadastrado",
+          description: "Cliente adicionado ao Google Sheets com sucesso!",
+        });
+      } else {
+        throw new Error('Falha ao adicionar no Google Sheets');
+      }
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível cadastrar o cliente.",
+        description: "Não foi possível cadastrar o cliente no Google Sheets.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingClients(false);
+    }
+  }
+
+  const handleEditClient = (index: number) => {
+    setEditingClientIndex(index);
+    setEditingClient(clients[index]);
+  };
+
+  const handleSaveEditClient = async () => {
+    if (!editingClient.name || !editingClient.email || !editingClient.value) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha nome, email e valor do cliente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsLoadingClients(true);
+      
+      // Atualizar no Google Sheets
+      const clientData: ClientData = {
+        name: editingClient.name,
+        email: editingClient.email,
+        phone: editingClient.phone,
+        company: editingClient.company,
+        value: editingClient.value,
+        status: editingClient.status
+      };
+      
+      const success = await googleSheetsService.updateClient(editingClientIndex!, clientData);
+      
+      if (success) {
+        // Atualizar estado local
+        setClients(prev => prev.map((client, index) => 
+          index === editingClientIndex ? editingClient : client
+        ));
+        
+        setEditingClientIndex(null);
+        setEditingClient({ 
+          name: '', 
+          email: '', 
+          phone: '', 
+          company: '', 
+          value: 0, 
+          status: 'pending_payment', 
+          implementationPaid: false 
+        });
+
+        toast({
+          title: "Cliente atualizado",
+          description: "Dados atualizados no Google Sheets com sucesso.",
+        });
+      } else {
+        throw new Error('Falha ao atualizar no Google Sheets');
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o cliente no Google Sheets.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingClients(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingClientIndex(null);
+    setEditingClient({ 
+      name: '', 
+      email: '', 
+      phone: '', 
+      company: '', 
+      value: 0, 
+      status: 'pending_payment', 
+      implementationPaid: false 
+    });
+  };
+
+  const handleDeleteClient = async (index: number) => {
+    try {
+      setIsLoadingClients(true);
+      
+      // Deletar do Google Sheets
+      const success = await googleSheetsService.deleteClient(index);
+      
+      if (success) {
+        // Atualizar estado local
+        setClients(prev => prev.filter((_, i) => i !== index));
+        toast({
+          title: "Cliente removido",
+          description: "Cliente removido do Google Sheets com sucesso.",
+        });
+      } else {
+        throw new Error('Falha ao deletar do Google Sheets');
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o cliente do Google Sheets.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingClients(false);
+    }
+  };
+
+  const handleStepClick = (stepNumber: number) => {
+    // Função removida - não mais necessária
+  };
+
+  const handlePayImplementationFee = async (clientIndex: number) => {
+    try {
+      // Aqui você integraria com o Stripe para criar o pagamento
+      // Por enquanto, vamos simular o pagamento
+      
+      toast({
+        title: "Redirecionando para pagamento",
+        description: `Taxa de implantação: R$ ${IMPLEMENTATION_FEE.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`,
+      });
+
+      // Simular pagamento bem-sucedido após alguns segundos
+      setTimeout(() => {
+        setClients(prev => prev.map((client, index) => 
+          index === clientIndex 
+            ? { ...client, implementationPaid: true, status: 'active' }
+            : client
+        ));
+        
+        toast({
+          title: "Pagamento confirmado",
+          description: "Taxa de implantação paga! Cliente será notificado.",
+        });
+      }, 3000);
+
+    } catch (error) {
+      toast({
+        title: "Erro no pagamento",
+        description: "Não foi possível processar o pagamento da taxa de implantação.",
         variant: "destructive"
       });
     }
-  }
+  };
   return (
   <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       
@@ -308,7 +436,7 @@ export default function PartnerDashboard() {
               <TrendingUp className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-400">30%</div>
+              <div className="text-2xl font-bold text-blue-400">20%</div>
               <p className="text-xs text-blue-100">Próximo nível: 50%</p>
             </CardContent>
           </Card>
@@ -359,12 +487,10 @@ export default function PartnerDashboard() {
         </Card>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Visão Geral</TabsTrigger>
-            <TabsTrigger value="resources" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Recursos</TabsTrigger>
+        <Tabs defaultValue="clients" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
             <TabsTrigger value="clients" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Clientes</TabsTrigger>
-            <TabsTrigger value="payments" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Pagamentos</TabsTrigger>
+            <TabsTrigger value="resources" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Recursos</TabsTrigger>
             <TabsTrigger value="support" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Suporte</TabsTrigger>
           </TabsList>
           {/* Nova aba de Clientes */}
@@ -379,41 +505,99 @@ export default function PartnerDashboard() {
                 <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleAddClient(); }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label>Nome do Cliente</Label>
-                      <Input required value={newClient.name} onChange={e => setNewClient(prev => ({...prev, name: e.target.value}))} placeholder="Nome completo" />
+                      <Label className="text-blue-100">Nome do Cliente</Label>
+                      <Input 
+                        required 
+                        value={newClient.name} 
+                        onChange={e => setNewClient(prev => ({...prev, name: e.target.value}))} 
+                        placeholder="Nome completo" 
+                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                      />
                     </div>
                     <div>
-                      <Label>Email do Cliente</Label>
-                      <Input required type="email" value={newClient.email} onChange={e => setNewClient(prev => ({...prev, email: e.target.value}))} placeholder="email@cliente.com" />
+                      <Label className="text-blue-100">Email do Cliente</Label>
+                      <Input 
+                        required 
+                        type="email" 
+                        value={newClient.email} 
+                        onChange={e => setNewClient(prev => ({...prev, email: e.target.value}))} 
+                        placeholder="email@cliente.com" 
+                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label>Telefone</Label>
-                      <Input value={newClient.phone} onChange={e => setNewClient(prev => ({...prev, phone: e.target.value}))} placeholder="(99) 99999-9999" />
+                      <Label className="text-blue-100">Telefone</Label>
+                      <Input 
+                        value={newClient.phone} 
+                        onChange={e => setNewClient(prev => ({...prev, phone: e.target.value}))} 
+                        placeholder="(99) 99999-9999" 
+                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                      />
                     </div>
                     <div>
-                      <Label>Empresa</Label>
-                      <Input value={newClient.company} onChange={e => setNewClient(prev => ({...prev, company: e.target.value}))} placeholder="Nome da empresa" />
+                      <Label className="text-blue-100">Empresa</Label>
+                      <Input 
+                        value={newClient.company} 
+                        onChange={e => setNewClient(prev => ({...prev, company: e.target.value}))} 
+                        placeholder="Nome da empresa" 
+                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className="text-blue-200 text-lg font-semibold">Valor a pagar:</span>
-                    <span className="text-2xl font-bold text-blue-400">R$ {clientPrice.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                    <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 ml-2">Desconto parceiro</Badge>
+                  <div>
+                    <Label className="text-blue-100">Valor do Cliente (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      min="0" 
+                      required 
+                      value={newClient.value || ''} 
+                      onChange={e => setNewClient(prev => ({...prev, value: parseFloat(e.target.value) || 0}))} 
+                      placeholder="Ex: 1500.00" 
+                      className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                    />
                   </div>
-                  <Button type="submit" variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white mt-4">Pagar e Cadastrar Cliente</Button>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="text-blue-200 text-lg font-semibold">Valor definido:</span>
+                    <span className="text-2xl font-bold text-blue-400">R$ {newClient.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <Badge variant="secondary" className="bg-green-600/20 text-green-100 border border-green-600/40 ml-2">Personalizado</Badge>
+                  </div>
+                  <Button type="submit" variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white mt-4">Cadastrar Cliente</Button>
                 </form>
               </CardContent>
             </Card>
             <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
               <CardHeader>
-                <CardTitle>Clientes Cadastrados</CardTitle>
-                <p className="text-blue-100 mt-2">Veja todos os clientes cadastrados por você.</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Clientes Cadastrados</CardTitle>
+                    <p className="text-blue-100 mt-2">Dados sincronizados em tempo real com Google Sheets.</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={loadClientsFromSheets}
+                    disabled={isLoadingClients}
+                    className="border-blue-600 text-blue-300 hover:bg-blue-700"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingClients ? 'animate-spin' : ''}`} />
+                    Sincronizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {clients.length === 0 ? (
-                  <div className="text-center py-8 text-blue-200">Nenhum cliente cadastrado ainda.</div>
+                {isLoadingClients ? (
+                  <div className="text-center py-8">
+                    <RefreshCw className="w-8 h-8 text-blue-400 mx-auto mb-4 animate-spin" />
+                    <p className="text-blue-200">Sincronizando com Google Sheets...</p>
+                  </div>
+                ) : clients.length === 0 ? (
+                  <div className="text-center py-8 text-blue-200">
+                    <p>Nenhum cliente encontrado no Google Sheets.</p>
+                    <p className="text-sm mt-2">Cadastre o primeiro cliente ou verifique a configuração da planilha.</p>
+                  </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-left text-sm">
@@ -421,29 +605,140 @@ export default function PartnerDashboard() {
                         <tr className="text-blue-300 border-b border-blue-700/40">
                           <th className="py-2 px-4">Nome</th>
                           <th className="py-2 px-4">Email</th>
-                          <th className="py-2 px-4">Telefone</th>
                           <th className="py-2 px-4">Empresa</th>
+                          <th className="py-2 px-4">Valor</th>
                           <th className="py-2 px-4">Status</th>
+                          <th className="py-2 px-4">Ações</th>
                         </tr>
                       </thead>
                       <tbody>
                         {clients.map((c, i) => (
                           <tr key={i} className="border-b border-blue-800/30">
-                          <td className="py-2 px-4">{c.name}</td>
-                          <td className="py-2 px-4">{c.email}</td>
-                          <td className="py-2 px-4">{c.phone}</td>
-                          <td className="py-2 px-4">{c.company}</td>
-                          <td className="py-2 px-4">
-                            <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">Ativo</Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                            {editingClientIndex === i ? (
+                              // Modo de edição
+                              <>
+                                <td className="py-2 px-4">
+                                  <Input 
+                                    value={editingClient.name} 
+                                    onChange={e => setEditingClient(prev => ({...prev, name: e.target.value}))}
+                                    className="bg-[#101828] border-blue-700/40 text-white text-sm h-8"
+                                  />
+                                </td>
+                                <td className="py-2 px-4">
+                                  <Input 
+                                    value={editingClient.email} 
+                                    onChange={e => setEditingClient(prev => ({...prev, email: e.target.value}))}
+                                    className="bg-[#101828] border-blue-700/40 text-white text-sm h-8"
+                                  />
+                                </td>
+                                <td className="py-2 px-4">
+                                  <Input 
+                                    value={editingClient.company} 
+                                    onChange={e => setEditingClient(prev => ({...prev, company: e.target.value}))}
+                                    className="bg-[#101828] border-blue-700/40 text-white text-sm h-8"
+                                  />
+                                </td>
+                                <td className="py-2 px-4">
+                                  <Input 
+                                    type="number"
+                                    value={editingClient.value || ''} 
+                                    onChange={e => setEditingClient(prev => ({...prev, value: parseFloat(e.target.value) || 0}))}
+                                    className="bg-[#101828] border-blue-700/40 text-white text-sm h-8"
+                                  />
+                                </td>
+                                <td className="py-2 px-4">
+                                  {c.status === 'pending_payment' && (
+                                    <Badge variant="secondary" className="bg-yellow-600/20 text-yellow-300 border border-yellow-600/30">Pendente Pagamento</Badge>
+                                  )}
+                                  {c.status === 'pending_implementation' && (
+                                    <Badge variant="secondary" className="bg-orange-600/20 text-orange-300 border border-orange-600/30">Pendente Implantação</Badge>
+                                  )}
+                                  {c.status === 'active' && (
+                                    <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">Ativo</Badge>
+                                  )}
+                                </td>
+                                <td className="py-2 px-4">
+                                  <div className="flex gap-1">
+                                    <Button 
+                                      size="sm" 
+                                      variant="hero" 
+                                      className="bg-green-600 hover:bg-green-700 text-white text-xs p-1 h-7 w-7"
+                                      onClick={handleSaveEditClient}
+                                    >
+                                      <Save className="w-3 h-3" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs p-1 h-7 w-7"
+                                      onClick={handleCancelEdit}
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </>
+                            ) : (
+                              // Modo de visualização
+                              <>
+                                <td className="py-2 px-4">{c.name}</td>
+                                <td className="py-2 px-4">{c.email}</td>
+                                <td className="py-2 px-4">{c.company}</td>
+                                <td className="py-2 px-4">R$ {c.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                <td className="py-2 px-4">
+                                  {c.status === 'pending_payment' && (
+                                    <Badge variant="secondary" className="bg-yellow-600/20 text-yellow-300 border border-yellow-600/30">Pendente Pagamento</Badge>
+                                  )}
+                                  {c.status === 'pending_implementation' && (
+                                    <Badge variant="secondary" className="bg-orange-600/20 text-orange-300 border border-orange-600/30">Pendente Implantação</Badge>
+                                  )}
+                                  {c.status === 'active' && (
+                                    <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">Ativo</Badge>
+                                  )}
+                                </td>
+                                <td className="py-2 px-4">
+                                  <div className="flex gap-1">
+                                    {c.status === 'pending_implementation' && !c.implementationPaid && (
+                                      <Button 
+                                        size="sm" 
+                                        variant="hero" 
+                                        className="bg-orange-600 hover:bg-orange-700 text-white text-xs mr-1"
+                                        onClick={() => handlePayImplementationFee(i)}
+                                      >
+                                        Pagar Taxa
+                                      </Button>
+                                    )}
+                                    {c.status === 'active' && (
+                                      <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30 mr-1">✓ Ativo</Badge>
+                                    )}
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="border-slate-600 text-slate-300 hover:bg-slate-700 text-xs p-1 h-7 w-7"
+                                      onClick={() => handleEditClient(i)}
+                                    >
+                                      <Edit3 className="w-3 h-3" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="destructive" 
+                                      className="bg-red-700 hover:bg-red-800 text-white text-xs p-1 h-7 w-7"
+                                      onClick={() => handleDeleteClient(i)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
         </TabsContent>
 
 
@@ -493,7 +788,7 @@ export default function PartnerDashboard() {
                   <div className="p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-white">Comissão Padrão</span>
-                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">30%</Badge>
+                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">20%</Badge>
                     </div>
                     <p className="text-sm text-blue-200">Em todas as vendas e renovações</p>
                   </div>
@@ -541,184 +836,29 @@ export default function PartnerDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="payments" className="space-y-6">
-            
-            {/* Métodos de Pagamento */}
-            <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Métodos de Pagamento</CardTitle>
-                    <p className="text-blue-100">
-                      Configure como deseja receber suas comissões
-                    </p>
-                  </div>
-                  <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowAddPayment(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Método
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {paymentMethods.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CreditCard className="w-16 h-16 text-blue-100 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium mb-2">Nenhum método cadastrado</h3>
-                    <p className="text-blue-100 mb-6">
-                      Adicione um método de pagamento para receber suas comissões.
-                    </p>
-                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowAddPayment(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Primeiro Método
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {paymentMethods.map((method) => (
-                      <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center">
-                          {method.method_type === 'pix' ? (
-                            <Smartphone className="w-8 h-8 text-primary mr-3" />
-                          ) : (
-                            <Banknote className="w-8 h-8 text-primary mr-3" />
-                          )}
-                          <div>
-                            <div className="flex items-center">
-                              <h4 className="font-medium">
-                                {method.method_type === 'pix' ? 'PIX' : 'Transferência Bancária'}
-                              </h4>
-                              {method.is_default && (
-                                <Badge variant="secondary" className="ml-2">
-                                  <Check className="w-3 h-3 mr-1" />
-                                  Padrão
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-blue-100">
-                              {method.method_type === 'pix' 
-                                ? `Chave: ${method.details.pix_key}` 
-                                : `${method.details.bank} - Ag: ${method.details.agency}`
-                              }
-                            </p>
-                          </div>
-                        </div>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          className="bg-red-700 hover:bg-red-800 text-white border-none"
-                          onClick={() => handleDeletePaymentMethod(method.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+          <TabsContent value="resources" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {resources.map((resource, index) => {
+                const Icon = resource.icon;
+                return (
+                  <Card key={index} className="bg-[#101828]/90 border border-blue-700/40 hover:shadow-lg transition-all duration-300 cursor-pointer text-white">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <Icon className="w-8 h-8 text-blue-400" />
+                        <Badge variant="outline" className="border-blue-600/40 text-blue-300">{resource.type}</Badge>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Formulário para adicionar método */}
-                {showAddPayment && (
-                  <div className="mt-6 p-6 border border-blue-700/40 rounded-lg bg-[#101828]/80 text-white">
-                    <h4 className="font-medium mb-4">Adicionar Método de Pagamento</h4>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Tipo de Pagamento</Label>
-                        <Select 
-                          value={newPaymentMethod.method_type} 
-                          onValueChange={(value) => setNewPaymentMethod(prev => ({...prev, method_type: value}))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pix">PIX</SelectItem>
-                            <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {newPaymentMethod.method_type === 'pix' && (
-                        <>
-                          <div>
-                            <Label>Chave PIX</Label>
-                            <Input
-                              value={newPaymentMethod.pix_key}
-                              onChange={(e) => setNewPaymentMethod(prev => ({...prev, pix_key: e.target.value}))}
-                              placeholder="CPF, e-mail, telefone ou chave aleatória"
-                            />
-                          </div>
-                          <div>
-                            <Label>Banco</Label>
-                            <Input
-                              value={newPaymentMethod.bank}
-                              onChange={(e) => setNewPaymentMethod(prev => ({...prev, bank: e.target.value}))}
-                              placeholder="Nome do banco"
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {newPaymentMethod.method_type === 'bank_transfer' && (
-                        <>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Banco</Label>
-                              <Input
-                                value={newPaymentMethod.bank}
-                                onChange={(e) => setNewPaymentMethod(prev => ({...prev, bank: e.target.value}))}
-                                placeholder="Nome do banco"
-                              />
-                            </div>
-                            <div>
-                              <Label>Agência</Label>
-                              <Input
-                                value={newPaymentMethod.agency}
-                                onChange={(e) => setNewPaymentMethod(prev => ({...prev, agency: e.target.value}))}
-                                placeholder="0000"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Conta</Label>
-                              <Input
-                                value={newPaymentMethod.account}
-                                onChange={(e) => setNewPaymentMethod(prev => ({...prev, account: e.target.value}))}
-                                placeholder="00000-0"
-                              />
-                            </div>
-                            <div>
-                              <Label>Tipo de Conta</Label>
-                              <Select 
-                                value={newPaymentMethod.account_type} 
-                                onValueChange={(value) => setNewPaymentMethod(prev => ({...prev, account_type: value}))}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="corrente">Corrente</SelectItem>
-                                  <SelectItem value="poupanca">Poupança</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </>
-                      )}
-
-                      <div className="flex gap-2">
-                        <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleAddPaymentMethod}>
-                          Adicionar
-                        </Button>
-                        <Button variant="outline" className="border-blue-700/40 text-blue-300" onClick={() => setShowAddPayment(false)}>
-                          Cancelar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      <CardTitle className="text-lg text-white">{resource.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Button variant="hero" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </TabsContent>
 
           <TabsContent value="support" className="space-y-6">
