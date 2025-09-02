@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const targetPartners = [
   {
@@ -25,6 +26,33 @@ const targetPartners = [
 ];
 
 export default function Partnership() {
+  
+  useEffect(() => {
+    // Script para mobile flip cards
+    const flipCards = document.querySelectorAll('.flip-card');
+    
+    const handleCardClick = (card: Element) => {
+      return function(e: Event) {
+        // Só ativar no mobile
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          card.classList.toggle('flipped');
+        }
+      };
+    };
+
+    flipCards.forEach(card => {
+      card.addEventListener('click', handleCardClick(card));
+    });
+
+    // Cleanup
+    return () => {
+      flipCards.forEach(card => {
+        card.removeEventListener('click', handleCardClick(card));
+      });
+    };
+  }, []);
+
   return (
   <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
       <Navigation />
@@ -123,7 +151,7 @@ export default function Partnership() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Benefits Cards com efeito flip */}
             {[
-              { icon: DollarSign, title: "Ganhos Exponenciais", description: "Comissão de 20% em todas as vendas e renovações. Ao atingir R$ 50.000 em faturamento, sua comissão sobe para 50%, garantindo uma receita passiva e crescente. Além disso, ganhe comissões em todos os novos produtos e cross-sells que oferecermos.", badge: "Receita Recorrente" },
+              { icon: DollarSign, title: "Ganhos Exponenciais", description: "Comissão de 20% em todas as vendas e renovações. Ao atingir R$ 50.000 em faturamento, sua comissão sobe para 30%, garantindo uma receita passiva e crescente. Além disso, ganhe comissões em todos os novos produtos e cross-sells que oferecermos.", badge: "Receita Recorrente" },
               { icon: Brain, title: "Monetização da Expertise", description: "Você não é apenas um revendedor. Ofereça serviços de alto valor como configuração de fluxos de atendimento, criação de scripts de qualificação jurídica e treinamento de equipes. Defina seus próprios preços e fique com 100% dessa receita.", badge: "100% Seu Lucro" },
               { icon: Users, title: "Leads Jurídicos Qualificados", description: "Nós investimos no seu sucesso. Fornecemos acesso a uma base de advogados e escritórios que já demonstraram interesse na ConverseIA Direito, mas precisam de um especialista para implementar a solução.", badge: "Leads Prontos" },
               { icon: Gift, title: "70% de Desconto na Plataforma", description: "Domine a plataforma com 70% de desconto. Receba acesso à ConverseIA Direito com desconto especial para demonstrações aos clientes, permitindo que você explore todo o potencial da ferramenta e apresente com confiança.", badge: "Acesso com Desconto" },
@@ -133,17 +161,21 @@ export default function Partnership() {
               const Icon = benefit.icon;
               return (
                 <div key={index} className="h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 [perspective:1000px] group">
-                  <div className="relative w-full h-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] cursor-pointer">
+                  <div className="flip-card relative w-full h-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] cursor-pointer">
                     {/* Frente do card: ícone, título e badge */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl [backface-visibility:hidden] p-6">
+                    <div className="card-front absolute inset-0 flex flex-col items-center justify-center bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl [backface-visibility:hidden] p-6">
                       <Icon className="w-12 h-12 md:w-14 md:h-14 text-blue-500 drop-shadow mb-4" />
                       <span className="text-xl md:text-2xl font-bold text-blue-100 drop-shadow-glow text-center mb-2 px-2">{benefit.title}</span>
                       <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 mt-2 text-sm px-3 py-1">
                         {benefit.badge}
                       </Badge>
+                      {/* Botão para mobile */}
+                      <button className="md:hidden mt-4 text-blue-300 text-sm underline tap-button">
+                        Toque para ver mais
+                      </button>
                     </div>
                     {/* Verso do card: conteúdo completo */}
-                    <div className="absolute inset-0 flex flex-col justify-between bg-[#101828]/90 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl p-6 [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                    <div className="card-back absolute inset-0 flex flex-col justify-between bg-[#101828]/90 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl p-6 [transform:rotateY(180deg)] [backface-visibility:hidden]">
                       <div className="flex items-start justify-between mb-2">
                         <Icon className="w-8 h-8 text-blue-500 drop-shadow" />
                         <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40">
@@ -154,12 +186,29 @@ export default function Partnership() {
                         <span className="block text-lg font-semibold text-blue-100 mb-2">{benefit.title}</span>
                         <p className="text-blue-200/90 text-sm leading-relaxed">{benefit.description}</p>
                       </div>
+                      {/* Botão para voltar no mobile */}
+                      <button className="md:hidden mt-4 text-blue-300 text-sm underline tap-button">
+                        Toque para voltar
+                      </button>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
+          
+          {/* CSS personalizado para mobile */}
+          <style>{`
+            @media (max-width: 768px) {
+              .flip-card.flipped {
+                transform: rotateY(180deg) !important;
+              }
+              .flip-card .card-front,
+              .flip-card .card-back {
+                transition: transform 0.7s ease-in-out;
+              }
+            }
+          `}</style>
         </div>
       </section>
       {/* HowItWorksSection + CTA unificados */}
@@ -180,7 +229,7 @@ export default function Partnership() {
                 icon: Target,
                 number: "01",
                 title: "Ganhe com Cada Venda",
-                summary: "Comissão de 20% em todas as vendas. Ao atingir R$ 50.000 em vendas, sua comissão sobe para 50%. Renovações e novos produtos também geram receita.",
+                summary: "Comissão de 20% em todas as vendas. Ao atingir R$ 50.000 em vendas, sua comissão sobe para 30%. Renovações e novos produtos também geram receita.",
                 note: "Acompanhe tudo pelo Portal de Parceiros."
               },
               {

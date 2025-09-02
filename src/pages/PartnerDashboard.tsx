@@ -154,12 +154,16 @@ export default function PartnerDashboard() {
     return <div>Carregando...</div>;
   }
 
+  // Calcular dados de vendas e comissões
+  const totalClientValue = clients.reduce((sum, client) => sum + client.value, 0);
+  const currentCommissionRate = totalClientValue >= 50000 ? 30 : 20; // 20% inicial, 30% após 50k
+  const totalCommission = totalClientValue * (currentCommissionRate / 100);
+  
   const salesData = {
-    totalSales: 0,
-    commission: 0,
-    recurringCommission: 0,
-    nextTier: 50000,
-    currentProgress: 0
+    totalSales: totalClientValue,
+    commission: totalCommission,
+    commissionRate: currentCommissionRate,
+    recurringCommission: 0
   };
 
   const resources = [
@@ -436,8 +440,10 @@ export default function PartnerDashboard() {
               <TrendingUp className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-400">20%</div>
-              <p className="text-xs text-blue-100">Próximo nível: 50%</p>
+              <div className="text-2xl font-bold text-blue-400">{salesData.commissionRate}%</div>
+              <p className="text-xs text-blue-100">
+                {salesData.commissionRate === 30 ? 'Nível Premium atingido!' : 'Sobe para 30% aos R$ 50k'}
+              </p>
             </CardContent>
           </Card>
 
@@ -447,41 +453,61 @@ export default function PartnerDashboard() {
               <Users className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">0</div>
-              <p className="text-xs text-blue-100">Escritórios atendidos</p>
+              <div className="text-2xl font-bold text-white">{clients.filter(c => c.status === 'active').length}</div>
+              <p className="text-xs text-blue-100">de {clients.length} total</p>
             </CardContent>
           </Card>
 
           <Card className="bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-100">Próxima Meta</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-100">Total Comissões</CardTitle>
               <Target className="h-4 w-4 text-blue-100" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">R$ 50k</div>
-              <p className="text-xs text-blue-100">Para comissão 50%</p>
+              <div className="text-2xl font-bold text-white">R$ {salesData.commission.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+              <p className="text-xs text-blue-100">Lucro acumulado</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Progress to Next Tier */}
-  <Card className="mb-8 bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
+        {/* Barra de Lucros */}
+        <Card className="mb-8 bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
           <CardHeader>
             <CardTitle className="flex items-center text-white">
-              <Zap className="w-5 h-5 text-blue-400 mr-2" />
-              Progresso para Próximo Nível
+              <DollarSign className="w-5 h-5 text-blue-400 mr-2" />
+              Resumo de Lucros
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex justify-between text-sm text-blue-100">
-                <span>R$ {salesData.totalSales}</span>
-                <span>R$ {salesData.nextTier.toLocaleString()}</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-blue-100 mb-1">Vendas Totais</p>
+                  <p className="text-2xl font-bold text-white">R$ {salesData.totalSales.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-blue-100 mb-1">Taxa de Comissão</p>
+                  <p className="text-2xl font-bold text-blue-400">{salesData.commissionRate}%</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-blue-100 mb-1">Lucro Total</p>
+                  <p className="text-2xl font-bold text-green-400">R$ {salesData.commission.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                </div>
               </div>
-              <Progress value={(salesData.totalSales / salesData.nextTier) * 100} className="h-3" />
-              <p className="text-sm text-blue-100">
-                Você precisa de mais R$ {(salesData.nextTier - salesData.totalSales).toLocaleString()} em vendas para atingir comissão de 50%
-              </p>
+              {salesData.commissionRate === 20 && (
+                <div className="mt-4 p-3 bg-blue-600/10 border border-blue-600/30 rounded-lg">
+                  <p className="text-sm text-blue-200 text-center">
+                    💡 Atinja R$ 50.000 em vendas para aumentar sua comissão para 30%!
+                  </p>
+                </div>
+              )}
+              {salesData.commissionRate === 30 && (
+                <div className="mt-4 p-3 bg-green-600/10 border border-green-600/30 rounded-lg">
+                  <p className="text-sm text-green-200 text-center">
+                    🎉 Parabéns! Você atingiu o nível premium com 30% de comissão!
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -787,7 +813,7 @@ export default function PartnerDashboard() {
                 <CardContent className="space-y-4">
                   <div className="p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-white">Comissão Padrão</span>
+                      <span className="font-medium text-white">Comissão Inicial</span>
                       <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">20%</Badge>
                     </div>
                     <p className="text-sm text-blue-200">Em todas as vendas e renovações</p>
@@ -802,7 +828,7 @@ export default function PartnerDashboard() {
                   <div className="p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-white">Após R$ 50k</span>
-                      <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">50%</Badge>
+                      <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30">30%</Badge>
                     </div>
                     <p className="text-sm text-green-200">Comissão premium permanente</p>
                   </div>
