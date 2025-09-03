@@ -11,6 +11,7 @@ export default function PartnerLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [loginType, setLoginType] = useState<'partner' | 'admin'>('partner');
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -41,15 +42,34 @@ export default function PartnerLogin() {
         return;
       }
       if (!data.user) throw new Error("Usuário não encontrado ou senha incorreta.");
+      
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando para o seu painel...",
         variant: "default"
       });
-      localStorage.setItem('partnerData', JSON.stringify(data.user));
-      setTimeout(() => {
-        navigate('/parceria/painel');
-      }, 1500);
+      
+      // Verificar se é Victor para admin ou redirecionar baseado no tipo selecionado
+      if (loginType === 'admin') {
+        if (data.user.email === 'victor@talka.tech') {
+          setTimeout(() => {
+            navigate('/parceria/admin');
+          }, 1500);
+        } else {
+          toast({
+            title: "Acesso negado",
+            description: "Apenas administradores podem acessar esta área.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // Login de parceiro normal
+        setTimeout(() => {
+          navigate('/parceria/painel');
+        }, 1500);
+      }
+      
     } catch (error: any) {
       toast({
         title: "Erro no login",
@@ -74,10 +94,36 @@ export default function PartnerLogin() {
               }
             }} />
             <h1 className="text-3xl font-bold mb-1">Acesse sua Conta</h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm mb-4">
               Não tem uma conta?{' '}
               <Link to="/parceria/cadastro" className="text-primary font-semibold hover:underline">Cadastre-se</Link>
             </p>
+            
+            {/* Seletor de tipo de login */}
+            <div className="flex gap-2 p-1 bg-[#0a1833] rounded-lg mb-4">
+              <button
+                type="button"
+                onClick={() => setLoginType('partner')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  loginType === 'partner' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-blue-200 hover:text-white'
+                }`}
+              >
+                Parceiro
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginType('admin')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  loginType === 'admin' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-blue-200 hover:text-white'
+                }`}
+              >
+                Administrador
+              </button>
+            </div>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

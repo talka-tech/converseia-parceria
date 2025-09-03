@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
 // import { googleSheetsService, ClientData } from "@/lib/googleSheets";
 import { 
   DollarSign, 
@@ -32,7 +33,8 @@ import {
   Edit3,
   X,
   Save,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -43,6 +45,7 @@ interface PartnerData {
   companyName: string;
   email: string;
   companyType: string;
+  status?: 'pending_approval' | 'approved' | 'rejected';
 }
 
 interface PaymentMethod {
@@ -130,16 +133,74 @@ export default function PartnerDashboard() {
   // Remover clientPrice já que agora o parceiro define o valor
 
   useEffect(() => {
-    const data = localStorage.getItem('partnerData');
-    if (data) {
-      const partner = JSON.parse(data);
-      setPartnerData(partner);
-      // Não carrega clientes automaticamente para evitar toast de erro
-    } else {
-      // Se não há dados do parceiro, redireciona para cadastro
-      navigate('/parceria/cadastro');
-    }
-  }, [navigate]);
+    const checkPartnerStatus = async () => {
+      try {
+        // Verificar se o usuário está autenticado
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/parceria/login');
+          return;
+        }
+
+        // Verificar se o parceiro existe e está aprovado
+        const { data: partnerData, error } = await supabase
+          .from('partners')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error || !partnerData) {
+          navigate('/parceria/cadastro');
+          return;
+        }
+
+        // Verificar status de aprovação
+        if (partnerData.status === 'pending_approval') {
+          // Mostrar tela de aguardando aprovação
+          setPartnerData({ 
+            id: partnerData.id,
+            name: user.user_metadata?.name || getFirstNameFromEmail(user.email || ''),
+            companyName: partnerData.company_name,
+            email: user.email || '',
+            companyType: partnerData.company_type,
+            status: 'pending_approval'
+          });
+          return;
+        }
+
+        if (partnerData.status === 'rejected') {
+          toast({
+            title: "Conta rejeitada",
+            description: "Sua solicitação de parceria foi rejeitada.",
+            variant: "destructive"
+          });
+          navigate('/parceria');
+          return;
+        }
+
+        if (partnerData.status !== 'approved') {
+          navigate('/parceria/cadastro');
+          return;
+        }
+
+        // Se chegou aqui, está aprovado
+        setPartnerData({
+          id: partnerData.id,
+          name: user.user_metadata?.name || getFirstNameFromEmail(user.email || ''),
+          companyName: partnerData.company_name,
+          email: user.email || '',
+          companyType: partnerData.company_type,
+          status: 'approved'
+        });
+
+      } catch (error) {
+        console.error("Erro ao verificar status do parceiro:", error);
+        navigate('/parceria/login');
+      }
+    };
+
+    checkPartnerStatus();
+  }, [navigate, toast]);
 
   // Funções de pagamento removidas
   // const loadPaymentMethods = async (partnerId: number) => {...}
@@ -151,16 +212,78 @@ export default function PartnerDashboard() {
     navigate('/parceria');
   };
 
-  // Função para extrair e formatar o primeiro nome
-  const getFirstName = (fullName: string) => {
-    if (!fullName) return '';
-    const firstName = fullName.split(' ')[0];
+  // Função para extrair e formatar o primeiro nome do email
+  const getFirstNameFromEmail = (email: string) => {
+    if (!email) return '';
+    const username = email.split('@')[0];
+    // Remove números e caracteres especiais
+    const cleanName = username.replace(/[^a-zA-Z]/g, '');
     // Capitaliza a primeira letra e deixa o resto minúsculo
-    return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+    return cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
   };
 
   if (!partnerData) {
     return <div>Carregando...</div>;
+  }
+
+  // Se o parceiro está aguardando aprovação
+  if (partnerData.status === 'pending_approval') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#0a1833] via-[#101828] to-[#1a2233] text-white">
+        <div className="container mx-auto px-6 py-8">
+          <div className="max-w-2xl mx-auto">
+            <Card className="bg-[#151d2b]/90 border border-amber-700/40 text-white">
+              <CardContent className="p-12 text-center">
+                <div className="w-24 h-24 bg-amber-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Clock className="w-12 h-12 text-amber-400" />
+                </div>
+                <h2 className="text-3xl font-bold mb-4 text-amber-400">Aguardando Aprovação</h2>
+                <p className="text-lg mb-6 text-amber-200">
+                  Olá, <strong>{getFirstNameFromEmail(partnerData.email)}</strong>! 
+                  Sua solicitação de parceria foi enviada para aprovação.
+                </p>
+                <div className="bg-amber-900/20 border border-amber-600/40 rounded-lg p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-amber-300 mb-3">Status da Solicitação</h3>
+                  <div className="space-y-2 text-left">
+                    <div className="flex items-center">
+                      <Check className="w-5 h-5 text-green-400 mr-2" />
+                      <span className="text-green-200">Cadastro realizado</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Check className="w-5 h-5 text-green-400 mr-2" />
+                      <span className="text-green-200">E-mail confirmado</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="w-5 h-5 text-amber-400 mr-2" />
+                      <span className="text-amber-200">Aguardando aprovação do Victor</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-blue-200 mb-6">
+                  Você receberá um e-mail quando sua conta for aprovada pelo responsável da empresa.
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="border-amber-600/40 text-amber-300 hover:bg-amber-700/20"
+                    onClick={handleLogout}
+                  >
+                    Sair
+                  </Button>
+                  <Button 
+                    variant="hero" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => window.location.reload()}
+                  >
+                    Verificar Status
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Calcular dados de vendas e comissões
@@ -392,7 +515,7 @@ export default function PartnerDashboard() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold mb-2 text-blue-400 drop-shadow-glow">
-            Bem-vindo(a), {getFirstName(partnerData.name)}! 👋
+            Bem-vindo(a), {getFirstNameFromEmail(partnerData.email)}!
           </h2>
           <p className="text-blue-200/90">
             Você está pronto para revolucionar o setor jurídico com IA. Comece explorando os recursos disponíveis.

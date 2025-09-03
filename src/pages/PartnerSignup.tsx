@@ -79,7 +79,7 @@ export default function PartnerSignup() {
       const user = signUpData.user;
       if (!user) throw new Error("Erro ao criar usuário no Supabase.");
 
-      // 2. Inserir dados do parceiro
+      // 2. Inserir dados do parceiro com status PENDENTE
       const { data: partnerData, error: partnerError } = await supabase
         .from('partners')
         .insert([
@@ -87,12 +87,59 @@ export default function PartnerSignup() {
             user_id: user.id,
             company_name: formData.company_name,
             company_type: formData.company_type,
-            phone: formData.phone
+            phone: formData.phone,
+            status: 'pending_approval', // Status pendente de aprovação
+            created_at: new Date().toISOString()
           }
         ])
         .select()
         .single();
       if (partnerError) throw new Error(partnerError.message);
+
+      // 3. Enviar notificação para Victor
+      try {
+        const notificationData = {
+          type: 'new_partner_request',
+          partner_email: formData.email,
+          partner_name: formData.name,
+          company_name: formData.company_name,
+          company_type: formData.company_type,
+          phone: formData.phone,
+          user_id: user.id,
+          partner_id: partnerData.id,
+          created_at: new Date().toISOString()
+        };
+
+        const { error: notificationError } = await supabase
+          .from('partner_approval_requests')
+          .insert([notificationData]);
+
+        if (notificationError) {
+          console.error("Erro ao criar notificação:", notificationError);
+        }
+
+        // Enviar email para Victor
+        try {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'new_partner_notification',
+              to: 'victor@talka.tech',
+              partnerData: {
+                name: formData.name,
+                email: formData.email,
+                company_name: formData.company_name,
+                company_type: formData.company_type,
+                phone: formData.phone
+              }
+            }
+          });
+        } catch (emailError) {
+          console.error("Erro ao enviar email:", emailError);
+        }
+
+      } catch (notificationErr) {
+        console.error("Erro ao enviar notificação:", notificationErr);
+      }
 
       setShowConfirmEmail(true);
     } catch (error: any) {
@@ -131,11 +178,25 @@ export default function PartnerSignup() {
             <CardContent>
               {showConfirmEmail ? (
                 <div className="py-12 text-center flex flex-col items-center">
-                  <svg width="64" height="64" fill="none" viewBox="0 0 24 24" className="mx-auto mb-6"><path stroke="#2563eb" strokeWidth="1.5" d="M3 7.5V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7.5m-18 0V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v.5m-18 0 8.47 6.35a2 2 0 0 0 2.36 0L21 7.5"/><path stroke="#2563eb" strokeWidth="1.5" d="m3.5 7.5 7.97 6.36a2 2 0 0 0 2.06.09l.3-.18L20.5 7.5"/></svg>
-                  <h2 className="text-2xl font-bold mb-2">Confirme seu e-mail</h2>
-                  <p className="text-lg mb-4">Enviamos um link de confirmação para <span className="font-semibold text-primary">{formData.email}</span>.</p>
-                  <p className="text-base text-muted-foreground mb-2">Acesse sua caixa de entrada e clique no link para ativar sua conta.</p>
-                  <p className="text-base text-muted-foreground">Após confirmar, você será direcionado automaticamente para o painel.</p>
+                  <svg width="64" height="64" fill="none" viewBox="0 0 24 24" className="mx-auto mb-6">
+                    <path stroke="#f59e0b" strokeWidth="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+                  </svg>
+                  <h2 className="text-2xl font-bold mb-2 text-amber-400">Cadastro Enviado para Aprovação</h2>
+                  <p className="text-lg mb-4">Sua solicitação de parceria foi enviada para análise.</p>
+                  <div className="bg-amber-900/20 border border-amber-600/40 rounded-lg p-4 mb-4">
+                    <p className="text-base text-amber-200 mb-2">
+                      📋 <strong>Próximos passos:</strong>
+                    </p>
+                    <ol className="text-sm text-amber-100 text-left space-y-1">
+                      <li>1. Confirme seu e-mail clicando no link enviado para <strong>{formData.email}</strong></li>
+                      <li>2. Aguarde a análise da sua solicitação</li>
+                      <li>3. Você receberá um e-mail quando sua conta for aprovada</li>
+                      <li>4. Após aprovação, poderá acessar o painel de parceiro</li>
+                    </ol>
+                  </div>
+                  <p className="text-base text-muted-foreground">
+                    Seu acesso será liberado após a aprovação da equipe responsável.
+                  </p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">

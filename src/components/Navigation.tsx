@@ -7,7 +7,8 @@ const Navigation = () => {
     { label: "Sobre", href: "https://www.converseia.com/#sobre" },
     { label: "Recursos", href: "https://www.converseia.com/#recursos" },
     { label: "Planos", href: "https://www.converseia.com/#planos" },
-    { label: "Documentação", href: "https://converseia.gitbook.io/converseia-docs" }
+    { label: "Documentação", href: "https://converseia.gitbook.io/converseia-docs" },
+    { label: "Login", href: "/parceria/login", isInternal: true }
   ];
 
   // Motion: reduz e arredonda ao scroll
@@ -30,14 +31,23 @@ const Navigation = () => {
         <ul className="flex gap-10">
           {menuItems.map((item, index) => (
             <li key={index}>
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white text-base font-semibold px-4 py-2 rounded-md transition-colors duration-200 hover:bg-blue-600/80 hover:text-white focus:bg-blue-700/90 focus:text-white"
-              >
-                {item.label}
-              </a>
+              {item.isInternal ? (
+                <Link
+                  to={item.href}
+                  className="text-white text-base font-semibold px-4 py-2 rounded-md transition-colors duration-200 hover:bg-blue-600/80 hover:text-white focus:bg-blue-700/90 focus:text-white"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white text-base font-semibold px-4 py-2 rounded-md transition-colors duration-200 hover:bg-blue-600/80 hover:text-white focus:bg-blue-700/90 focus:text-white"
+                >
+                  {item.label}
+                </a>
+              )}
             </li>
           ))}
         </ul>
