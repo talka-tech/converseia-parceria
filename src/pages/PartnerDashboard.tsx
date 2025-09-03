@@ -31,6 +31,7 @@ import {
   Trash2,
   Check,
   Edit3,
+  Settings,
   X,
   Save,
   RefreshCw,
@@ -112,7 +113,40 @@ export default function PartnerDashboard() {
     addedAt: ''
   });
 
-  // Carregar clientes do Google Sheets
+  // Carregar clientes do Supabase
+  const loadClientsFromDatabase = async () => {
+    if (!partnerData?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('partner_clients')
+        .select('*')
+        .eq('partner_id', partnerData.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar clientes:", error);
+        return;
+      }
+
+      // Converter para o formato esperado
+      const formattedClients = data.map(client => ({
+        name: client.name,
+        email: client.email,
+        phone: client.phone || '',
+        company: client.company || '',
+        value: client.value,
+        status: client.status,
+        implementationPaid: client.implementation_paid || false
+      }));
+
+      setClients(formattedClients);
+    } catch (error) {
+      console.error("Erro ao carregar clientes:", error);
+    }
+  };
+
+  // Carregar clientes do Google Sheets (mantido para compatibilidade)
   const loadClientsFromSheets = async () => {
     // Não carrega automaticamente para evitar erros de toast
     return;
@@ -201,6 +235,13 @@ export default function PartnerDashboard() {
 
     checkPartnerStatus();
   }, [navigate, toast]);
+
+  // useEffect para carregar clientes quando partnerData.id estiver disponível
+  useEffect(() => {
+    if (partnerData?.id) {
+      loadClientsFromDatabase();
+    }
+  }, [partnerData?.id]);
 
   // Funções de pagamento removidas
   // const loadPaymentMethods = async (partnerId: number) => {...}
@@ -320,8 +361,46 @@ export default function PartnerDashboard() {
     try {
       setIsLoadingClients(true);
       
-      // Adicionar apenas no estado local por enquanto
-      setClients(prev => [...prev, { ...newClient, status: 'pending_payment' }]);
+      // Salvar no Supabase
+      const { data, error } = await supabase
+        .from('partner_clients')
+        .insert([
+          {
+            partner_id: partnerData?.id,
+            name: newClient.name,
+            email: newClient.email,
+            phone: newClient.phone,
+            company: newClient.company,
+            value: newClient.value,
+            status: 'pending_payment',
+            implementation_paid: false,
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Erro ao salvar cliente:", error);
+        
+        // Se a tabela não existir, salvar apenas no estado local por enquanto
+        if (error.code === '42P01') {
+          toast({
+            title: "⚠️ Atenção",
+            description: "Cliente salvo temporariamente. Configure a tabela 'partner_clients' no Supabase.",
+            variant: "destructive"
+          });
+          
+          setClients(prev => [...prev, { ...newClient, status: 'pending_payment' }]);
+        } else {
+          throw error;
+        }
+      } else {
+        // Sucesso - recarregar dados do Supabase em vez de adicionar ao estado local
+        console.log("Cliente salvo com sucesso no Supabase:", data);
+        await loadClientsFromDatabase(); // Recarrega os dados do banco
+      }
+      
       setNewClient({ 
         name: '', 
         email: '', 
@@ -337,6 +416,7 @@ export default function PartnerDashboard() {
         description: "Cliente adicionado com sucesso!",
       });
     } catch (error) {
+      console.error("Erro completo:", error);
       toast({
         title: "Erro",
         description: "Não foi possível cadastrar o cliente.",
@@ -394,26 +474,63 @@ export default function PartnerDashboard() {
       return;
     }
 
-    // Atualizar estado local apenas
-    setClients(prev => prev.map((client, index) => 
-      index === editingClientIndex ? editingClient : client
-    ));
-    
-    setEditingClientIndex(null);
-    setEditingClient({ 
-      name: '', 
-      email: '', 
-      phone: '', 
-      company: '', 
-      value: 0, 
-      status: 'pending_payment', 
-      implementationPaid: false 
-    });
+    try {
+      // Pegar o cliente original para identificar no Supabase
+      const originalClient = clients[editingClientIndex!];
+      
+      // Atualizar no Supabase primeiro
+      if (partnerData?.id && originalClient) {
+        const { error } = await supabase
+          .from('partner_clients')
+          .update({
+            name: editingClient.name,
+            email: editingClient.email,
+            phone: editingClient.phone,
+            company: editingClient.company,
+            value: editingClient.value,
+            status: editingClient.status,
+            implementation_paid: editingClient.implementationPaid
+          })
+          .eq('partner_id', partnerData.id)
+          .eq('email', originalClient.email); // Usando email original como identificador
+        
+        if (error) {
+          console.error("Erro ao atualizar cliente no Supabase:", error);
+          throw error;
+        }
 
-    toast({
-      title: "Cliente atualizado",
-      description: "Dados do cliente atualizados com sucesso.",
-    });
+        // Sucesso - recarregar dados do Supabase
+        await loadClientsFromDatabase();
+      } else {
+        // Fallback: atualizar apenas estado local se não conseguir no Supabase
+        setClients(prev => prev.map((client, index) => 
+          index === editingClientIndex ? editingClient : client
+        ));
+      }
+      
+      setEditingClientIndex(null);
+      setEditingClient({ 
+        name: '', 
+        email: '', 
+        phone: '', 
+        company: '', 
+        value: 0, 
+        status: 'pending_payment', 
+        implementationPaid: false 
+      });
+
+      toast({
+        title: "Cliente atualizado",
+        description: "Dados do cliente atualizados com sucesso no banco de dados.",
+      });
+    } catch (error) {
+      console.error("Erro ao salvar edição:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as alterações.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancelEdit = () => {
@@ -430,12 +547,38 @@ export default function PartnerDashboard() {
   };
 
   const handleDeleteClient = async (index: number) => {
-    // Remover do estado local apenas
-    setClients(prev => prev.filter((_, i) => i !== index));
-    toast({
-      title: "Cliente removido",
-      description: "Cliente removido com sucesso.",
-    });
+    try {
+      const clientToDelete = clients[index];
+      
+      // Deletar do Supabase primeiro
+      if (partnerData?.id && clientToDelete) {
+        const { error } = await supabase
+          .from('partner_clients')
+          .delete()
+          .eq('partner_id', partnerData.id)
+          .eq('email', clientToDelete.email); // Usando email como identificador único
+        
+        if (error) {
+          console.error("Erro ao deletar cliente do Supabase:", error);
+          // Continua mesmo com erro para manter compatibilidade
+        }
+      }
+      
+      // Remover do estado local
+      setClients(prev => prev.filter((_, i) => i !== index));
+      
+      toast({
+        title: "Cliente removido",
+        description: "Cliente removido com sucesso do sistema.",
+      });
+    } catch (error) {
+      console.error("Erro ao deletar cliente:", error);
+      toast({
+        title: "Erro",
+        description: "Houve um problema ao remover o cliente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleStepClick = (stepNumber: number) => {
@@ -923,10 +1066,10 @@ export default function PartnerDashboard() {
                                     <Button 
                                       size="sm" 
                                       variant="outline" 
-                                      className="border-slate-600 text-slate-300 hover:bg-slate-700 text-xs p-1 h-7 w-7"
+                                      className="border-slate-600 text-slate-800 hover:bg-slate-700 hover:text-white text-xs p-1 h-7 w-7"
                                       onClick={() => handleEditClient(i)}
                                     >
-                                      <Edit3 className="w-3 h-3" />
+                                      <Edit3 className="w-3 h-3 text-slate-800 hover:text-white" />
                                     </Button>
                                     <Button 
                                       size="sm" 

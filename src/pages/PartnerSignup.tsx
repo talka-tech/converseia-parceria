@@ -223,21 +223,21 @@ export default function PartnerSignup() {
                       <div>
                         <Label htmlFor="name">Nome Completo *</Label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-300" />
                           <Input
                             id="name"
                             value={formData.name}
                             onChange={(e) => handleInputChange('name', e.target.value)}
                             placeholder="Seu nome completo"
                             required
-                            className="pl-10 text-[#101828] placeholder:text-[#101828]"
+                            className="pl-10 bg-[#1a2233] border-blue-700/40 text-white placeholder:text-gray-400 focus:border-blue-500"
                           />
                         </div>
                       </div>
                       <div>
                         <Label htmlFor="email">Email *</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-300" />
                           <Input
                             id="email"
                             type="email"
@@ -245,7 +245,7 @@ export default function PartnerSignup() {
                             onChange={(e) => handleInputChange('email', e.target.value)}
                             placeholder="seu@email.com"
                             required
-                            className="pl-10 text-[#101828] placeholder:text-[#101828]"
+                            className="pl-10 bg-[#1a2233] border-blue-700/40 text-white placeholder:text-gray-400 focus:border-blue-500"
                           />
                         </div>
                       </div>
@@ -253,7 +253,7 @@ export default function PartnerSignup() {
                     <div>
                       <Label htmlFor="password">Senha *</Label>
                       <div className="relative">
-                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-300" />
                         <Input
                           id="password"
                           type={showPassword ? "text" : "password"}
@@ -261,7 +261,7 @@ export default function PartnerSignup() {
                           onChange={(e) => handleInputChange('password', e.target.value)}
                           placeholder="Mínimo 6 caracteres"
                           required
-                          className="pl-10 pr-10 text-[#101828] placeholder:text-[#101828]"
+                          className="pl-10 pr-10 bg-[#1a2233] border-blue-700/40 text-white placeholder:text-gray-400 focus:border-blue-500"
                         />
                         <button
                           type="button"
@@ -277,13 +277,13 @@ export default function PartnerSignup() {
                     <div>
                       <Label htmlFor="phone">Telefone</Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-300" />
                         <Input
                           id="phone"
                           value={formData.phone}
                           onChange={(e) => handleInputChange('phone', e.target.value)}
                           placeholder="(11) 99999-9999"
-                          className="pl-10 text-[#101828] placeholder:text-[#101828]"
+                          className="pl-10 bg-[#1a2233] border-blue-700/40 text-white placeholder:text-gray-400 focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -294,30 +294,30 @@ export default function PartnerSignup() {
                     <div>
                       <Label htmlFor="company_name">Nome da Empresa *</Label>
                       <div className="relative">
-                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-300" />
                         <Input
                           id="company_name"
                           value={formData.company_name}
                           onChange={(e) => handleInputChange('company_name', e.target.value)}
                           placeholder="Nome da sua empresa"
                           required
-                          className="pl-10 text-white placeholder:text-[#101828]"
+                          className="pl-10 bg-[#1a2233] border-blue-700/40 text-white placeholder:text-gray-400 focus:border-blue-500"
                         />
                       </div>
                     </div>
                     <div>
                       <Label htmlFor="company_type">Tipo de Empresa *</Label>
                       <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-300 z-10" />
                         <Select value={formData.company_type} onValueChange={(value) => handleInputChange('company_type', value)}>
-                          <SelectTrigger className="pl-10 text-[#101828]">
+                          <SelectTrigger className="pl-10 bg-[#1a2233] border-blue-700/40 text-white focus:border-blue-500">
                             <SelectValue
-                              placeholder={<span className="text-[#101828]">Selecione o tipo da sua empresa</span>}
+                              placeholder={<span className="text-gray-400">Selecione o tipo da sua empresa</span>}
                             />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-[#1a2233] border-blue-700/40">
                             {companyTypes.map((type) => (
-                              <SelectItem key={type} value={type}>
+                              <SelectItem key={type} value={type} className="text-white hover:bg-blue-700/30">
                                 {type}
                               </SelectItem>
                             ))}
