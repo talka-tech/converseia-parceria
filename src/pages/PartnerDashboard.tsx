@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { googleSheetsService, ClientData } from "@/lib/googleSheets";
+// import { googleSheetsService, ClientData } from "@/lib/googleSheets";
 import { 
   DollarSign, 
   Users, 
@@ -63,6 +63,16 @@ interface Client {
   implementationPaid: boolean;
 }
 
+interface Lead {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  type: 'hot' | 'cold';
+  notes: string;
+  addedAt: string;
+}
+
 const IMPLEMENTATION_FEE = 500.00; // Taxa de implantação
 
 export default function PartnerDashboard() {
@@ -87,30 +97,22 @@ export default function PartnerDashboard() {
   });
   const [isLoadingClients, setIsLoadingClients] = useState(false);
 
+  // --- Estado e lógica para leads ---
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [newLead, setNewLead] = useState<Lead>({ 
+    name: '', 
+    email: '', 
+    phone: '', 
+    company: '', 
+    type: 'hot',
+    notes: '',
+    addedAt: ''
+  });
+
   // Carregar clientes do Google Sheets
   const loadClientsFromSheets = async () => {
-    setIsLoadingClients(true);
-    try {
-      const sheetsClients = await googleSheetsService.getClients();
-      // Converter para o formato local (adicionar implementationPaid se não existir)
-      const formattedClients = sheetsClients.map(client => ({
-        ...client,
-        implementationPaid: client.status === 'active'
-      }));
-      setClients(formattedClients);
-      toast({
-        title: "Dados sincronizados",
-        description: "Clientes carregados do Google Sheets com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro de sincronização",
-        description: "Não foi possível carregar dados do Google Sheets.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingClients(false);
-    }
+    // Não carrega automaticamente para evitar erros de toast
+    return;
   };
 
   // --- Estado para edição de cliente ---
@@ -132,8 +134,7 @@ export default function PartnerDashboard() {
     if (data) {
       const partner = JSON.parse(data);
       setPartnerData(partner);
-      // Carregar clientes do Google Sheets
-      loadClientsFromSheets();
+      // Não carrega clientes automaticamente para evitar toast de erro
     } else {
       // Se não há dados do parceiro, redireciona para cadastro
       navigate('/parceria/cadastro');
@@ -148,6 +149,14 @@ export default function PartnerDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('partnerData');
     navigate('/parceria');
+  };
+
+  // Função para extrair e formatar o primeiro nome
+  const getFirstName = (fullName: string) => {
+    if (!fullName) return '';
+    const firstName = fullName.split(' ')[0];
+    // Capitaliza a primeira letra e deixa o resto minúsculo
+    return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
   };
 
   if (!partnerData) {
@@ -188,47 +197,63 @@ export default function PartnerDashboard() {
     try {
       setIsLoadingClients(true);
       
-      // Adicionar no Google Sheets
-      const clientData: ClientData = {
-        name: newClient.name,
-        email: newClient.email,
-        phone: newClient.phone,
-        company: newClient.company,
-        value: newClient.value,
-        status: 'pending_payment'
-      };
-      
-      const success = await googleSheetsService.addClient(clientData);
-      
-      if (success) {
-        // Atualizar estado local
-        setClients(prev => [...prev, { ...newClient, status: 'pending_payment' }]);
-        setNewClient({ 
-          name: '', 
-          email: '', 
-          phone: '', 
-          company: '', 
-          value: 0, 
-          status: 'pending_payment', 
-          implementationPaid: false 
-        });
+      // Adicionar apenas no estado local por enquanto
+      setClients(prev => [...prev, { ...newClient, status: 'pending_payment' }]);
+      setNewClient({ 
+        name: '', 
+        email: '', 
+        phone: '', 
+        company: '', 
+        value: 0, 
+        status: 'pending_payment', 
+        implementationPaid: false 
+      });
 
-        toast({
-          title: "Cliente cadastrado",
-          description: "Cliente adicionado ao Google Sheets com sucesso!",
-        });
-      } else {
-        throw new Error('Falha ao adicionar no Google Sheets');
-      }
+      toast({
+        title: "Cliente cadastrado",
+        description: "Cliente adicionado com sucesso!",
+      });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível cadastrar o cliente no Google Sheets.",
+        description: "Não foi possível cadastrar o cliente.",
         variant: "destructive"
       });
     } finally {
       setIsLoadingClients(false);
     }
+  }
+
+  function handleAddLead() {
+    if (!newLead.name || !newLead.email) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha nome e email do lead.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const leadWithDate = {
+      ...newLead,
+      addedAt: new Date().toLocaleDateString('pt-BR')
+    };
+
+    setLeads(prev => [...prev, leadWithDate]);
+    setNewLead({ 
+      name: '', 
+      email: '', 
+      phone: '', 
+      company: '', 
+      type: 'hot',
+      notes: '',
+      addedAt: ''
+    });
+
+    toast({
+      title: "Lead adicionado",
+      description: "Lead cadastrado com sucesso!",
+    });
   }
 
   const handleEditClient = (index: number) => {
@@ -246,54 +271,26 @@ export default function PartnerDashboard() {
       return;
     }
 
-    try {
-      setIsLoadingClients(true);
-      
-      // Atualizar no Google Sheets
-      const clientData: ClientData = {
-        name: editingClient.name,
-        email: editingClient.email,
-        phone: editingClient.phone,
-        company: editingClient.company,
-        value: editingClient.value,
-        status: editingClient.status
-      };
-      
-      const success = await googleSheetsService.updateClient(editingClientIndex!, clientData);
-      
-      if (success) {
-        // Atualizar estado local
-        setClients(prev => prev.map((client, index) => 
-          index === editingClientIndex ? editingClient : client
-        ));
-        
-        setEditingClientIndex(null);
-        setEditingClient({ 
-          name: '', 
-          email: '', 
-          phone: '', 
-          company: '', 
-          value: 0, 
-          status: 'pending_payment', 
-          implementationPaid: false 
-        });
+    // Atualizar estado local apenas
+    setClients(prev => prev.map((client, index) => 
+      index === editingClientIndex ? editingClient : client
+    ));
+    
+    setEditingClientIndex(null);
+    setEditingClient({ 
+      name: '', 
+      email: '', 
+      phone: '', 
+      company: '', 
+      value: 0, 
+      status: 'pending_payment', 
+      implementationPaid: false 
+    });
 
-        toast({
-          title: "Cliente atualizado",
-          description: "Dados atualizados no Google Sheets com sucesso.",
-        });
-      } else {
-        throw new Error('Falha ao atualizar no Google Sheets');
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o cliente no Google Sheets.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingClients(false);
-    }
+    toast({
+      title: "Cliente atualizado",
+      description: "Dados do cliente atualizados com sucesso.",
+    });
   };
 
   const handleCancelEdit = () => {
@@ -310,31 +307,12 @@ export default function PartnerDashboard() {
   };
 
   const handleDeleteClient = async (index: number) => {
-    try {
-      setIsLoadingClients(true);
-      
-      // Deletar do Google Sheets
-      const success = await googleSheetsService.deleteClient(index);
-      
-      if (success) {
-        // Atualizar estado local
-        setClients(prev => prev.filter((_, i) => i !== index));
-        toast({
-          title: "Cliente removido",
-          description: "Cliente removido do Google Sheets com sucesso.",
-        });
-      } else {
-        throw new Error('Falha ao deletar do Google Sheets');
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o cliente do Google Sheets.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingClients(false);
-    }
+    // Remover do estado local apenas
+    setClients(prev => prev.filter((_, i) => i !== index));
+    toast({
+      title: "Cliente removido",
+      description: "Cliente removido com sucesso.",
+    });
   };
 
   const handleStepClick = (stepNumber: number) => {
@@ -414,7 +392,7 @@ export default function PartnerDashboard() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-extrabold mb-2 text-blue-400 drop-shadow-glow">
-            Bem-vindo, {partnerData.name}! 👋
+            Bem-vindo(a), {getFirstName(partnerData.name)}! 👋
           </h2>
           <p className="text-blue-200/90">
             Você está pronto para revolucionar o setor jurídico com IA. Comece explorando os recursos disponíveis.
@@ -472,126 +450,223 @@ export default function PartnerDashboard() {
 
         {/* Barra de Lucros */}
         <Card className="mb-8 bg-[#101828]/90 border border-blue-700/40 transition-shadow duration-300 hover:shadow-xl hover:shadow-blue-900/20">
-          <CardHeader>
-            <CardTitle className="flex items-center text-white">
-              <DollarSign className="w-5 h-5 text-blue-400 mr-2" />
-              Resumo de Lucros
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-blue-100 mb-1">Vendas Totais</p>
-                  <p className="text-2xl font-bold text-white">R$ {salesData.totalSales.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-blue-100 mb-1">Taxa de Comissão</p>
-                  <p className="text-2xl font-bold text-blue-400">{salesData.commissionRate}%</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-blue-100 mb-1">Lucro Total</p>
-                  <p className="text-2xl font-bold text-green-400">R$ {salesData.commission.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                </div>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <DollarSign className="w-5 h-5 text-blue-400 mr-2" />
+                <h3 className="text-lg font-semibold text-white">Resumo de Lucros</h3>
               </div>
-              {salesData.commissionRate === 20 && (
-                <div className="mt-4 p-3 bg-blue-600/10 border border-blue-600/30 rounded-lg">
-                  <p className="text-sm text-blue-200 text-center">
-                    💡 Atinja R$ 50.000 em vendas para aumentar sua comissão para 30%!
+              <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">
+                {salesData.commissionRate}% Comissão
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="text-center">
+                <p className="text-sm text-blue-300 mb-1">Vendas Totais</p>
+                <p className="text-2xl font-bold text-white">R$ {salesData.totalSales.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-blue-300 mb-1">Comissão Acumulada</p>
+                <p className="text-2xl font-bold text-blue-400">R$ {salesData.commission.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-blue-300 mb-1">Próxima Meta</p>
+                <p className="text-2xl font-bold text-green-400">R$ 50.000</p>
+              </div>
+            </div>
+            
+            {/* Barra de Progresso para Meta */}
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm text-blue-300">
+                <span>Progresso para 30% de comissão</span>
+                <span>{Math.round((salesData.totalSales / 50000) * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-800 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 h-2 rounded-full transition-all duration-300" 
+                  style={{width: `${Math.min((salesData.totalSales / 50000) * 100, 100)}%`}}
+                ></div>
+              </div>
+              <div className="text-center">
+                {salesData.commissionRate === 20 ? (
+                  <p className="text-sm text-blue-300">
+                    Faltam R$ {(50000 - salesData.totalSales).toLocaleString('pt-BR', {minimumFractionDigits: 2})} para 30% de comissão
                   </p>
-                </div>
-              )}
-              {salesData.commissionRate === 30 && (
-                <div className="mt-4 p-3 bg-green-600/10 border border-green-600/30 rounded-lg">
-                  <p className="text-sm text-green-200 text-center">
-                    🎉 Parabéns! Você atingiu o nível premium com 30% de comissão!
+                ) : (
+                  <p className="text-sm text-green-300 flex items-center justify-center">
+                    <span className="mr-2">🎉</span>
+                    Meta atingida! Você tem 30% de comissão!
                   </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="clients" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
+          <TabsList className="grid w-full grid-cols-5 bg-[#151d2b]/90 border border-blue-700/40 rounded-xl overflow-hidden">
             <TabsTrigger value="clients" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Clientes</TabsTrigger>
+            <TabsTrigger value="leads" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Leads</TabsTrigger>
             <TabsTrigger value="resources" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Recursos</TabsTrigger>
+            <TabsTrigger value="simulation" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Simulação</TabsTrigger>
             <TabsTrigger value="support" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Suporte</TabsTrigger>
           </TabsList>
           {/* Nova aba de Clientes */}
           <TabsContent value="clients" className="space-y-6">
             <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
               <CardHeader>
-                <CardTitle>Adicionar Novo Cliente</CardTitle>
-                <p className="text-blue-100 mt-2">Cadastre um novo cliente e realize o pagamento pré-pago com desconto de parceiro.</p>
+                <CardTitle>Adicionar Novo Cliente/Lead</CardTitle>
+                <p className="text-blue-100 mt-2">Cadastre um novo cliente ou lead para acompanhar seu funil de vendas.</p>
               </CardHeader>
               <CardContent>
-                {/* Formulário de novo cliente */}
-                <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleAddClient(); }}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-blue-100">Nome do Cliente</Label>
-                      <Input 
-                        required 
-                        value={newClient.name} 
-                        onChange={e => setNewClient(prev => ({...prev, name: e.target.value}))} 
-                        placeholder="Nome completo" 
-                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-blue-100">Email do Cliente</Label>
-                      <Input 
-                        required 
-                        type="email" 
-                        value={newClient.email} 
-                        onChange={e => setNewClient(prev => ({...prev, email: e.target.value}))} 
-                        placeholder="email@cliente.com" 
-                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-blue-100">Telefone</Label>
-                      <Input 
-                        value={newClient.phone} 
-                        onChange={e => setNewClient(prev => ({...prev, phone: e.target.value}))} 
-                        placeholder="(99) 99999-9999" 
-                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-blue-100">Empresa</Label>
-                      <Input 
-                        value={newClient.company} 
-                        onChange={e => setNewClient(prev => ({...prev, company: e.target.value}))} 
-                        placeholder="Nome da empresa" 
-                        className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-blue-100">Valor do Cliente (R$)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.01" 
-                      min="0" 
-                      required 
-                      value={newClient.value || ''} 
-                      onChange={e => setNewClient(prev => ({...prev, value: parseFloat(e.target.value) || 0}))} 
-                      placeholder="Ex: 1500.00" 
-                      className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
-                    />
-                  </div>
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className="text-blue-200 text-lg font-semibold">Valor definido:</span>
-                    <span className="text-2xl font-bold text-blue-400">R$ {newClient.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                    <Badge variant="secondary" className="bg-green-600/20 text-green-100 border border-green-600/40 ml-2">Personalizado</Badge>
-                  </div>
-                  <Button type="submit" variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white mt-4">Cadastrar Cliente</Button>
-                </form>
+                {/* Sub-abas para Cliente e Lead */}
+                <Tabs defaultValue="client" className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-2 bg-[#101828]/90 border border-blue-700/40">
+                    <TabsTrigger value="client" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Cliente</TabsTrigger>
+                    <TabsTrigger value="lead" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-200">Lead</TabsTrigger>
+                  </TabsList>
+                  
+                  {/* Formulário de Cliente */}
+                  <TabsContent value="client">
+                    <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleAddClient(); }}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-100">Nome do Cliente</Label>
+                          <Input 
+                            required 
+                            value={newClient.name} 
+                            onChange={e => setNewClient(prev => ({...prev, name: e.target.value}))} 
+                            placeholder="Nome completo" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-100">Email do Cliente</Label>
+                          <Input 
+                            required 
+                            type="email" 
+                            value={newClient.email} 
+                            onChange={e => setNewClient(prev => ({...prev, email: e.target.value}))} 
+                            placeholder="email@cliente.com" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-100">Telefone</Label>
+                          <Input 
+                            value={newClient.phone} 
+                            onChange={e => setNewClient(prev => ({...prev, phone: e.target.value}))} 
+                            placeholder="(99) 99999-9999" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-100">Empresa</Label>
+                          <Input 
+                            value={newClient.company} 
+                            onChange={e => setNewClient(prev => ({...prev, company: e.target.value}))} 
+                            placeholder="Nome da empresa" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-blue-100">Valor do Cliente (R$)</Label>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          min="0" 
+                          required 
+                          value={newClient.value || ''} 
+                          onChange={e => setNewClient(prev => ({...prev, value: parseFloat(e.target.value) || 0}))} 
+                          placeholder="Ex: 1500.00" 
+                          className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                        />
+                      </div>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-blue-200 text-lg font-semibold">Valor definido:</span>
+                        <span className="text-2xl font-bold text-blue-400">R$ {newClient.value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        <Badge variant="secondary" className="bg-green-600/20 text-green-100 border border-green-600/40 ml-2">Personalizado</Badge>
+                      </div>
+                      <Button type="submit" variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white mt-4">Cadastrar Cliente</Button>
+                    </form>
+                  </TabsContent>
+
+                  {/* Formulário de Lead */}
+                  <TabsContent value="lead">
+                    <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleAddLead(); }}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-100">Nome do Lead</Label>
+                          <Input 
+                            required 
+                            value={newLead.name} 
+                            onChange={e => setNewLead(prev => ({...prev, name: e.target.value}))} 
+                            placeholder="Nome completo" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-100">Email do Lead</Label>
+                          <Input 
+                            required 
+                            type="email" 
+                            value={newLead.email} 
+                            onChange={e => setNewLead(prev => ({...prev, email: e.target.value}))} 
+                            placeholder="email@lead.com" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-100">Telefone</Label>
+                          <Input 
+                            value={newLead.phone} 
+                            onChange={e => setNewLead(prev => ({...prev, phone: e.target.value}))} 
+                            placeholder="(99) 99999-9999" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-100">Empresa</Label>
+                          <Input 
+                            value={newLead.company} 
+                            onChange={e => setNewLead(prev => ({...prev, company: e.target.value}))} 
+                            placeholder="Nome da empresa" 
+                            className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-blue-100">Tipo de Lead</Label>
+                        <Select value={newLead.type} onValueChange={(value: 'hot' | 'cold') => setNewLead(prev => ({...prev, type: value}))}>
+                          <SelectTrigger className="bg-[#101828] border-blue-700/40 text-white">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="hot">🔥 Lead Quente</SelectItem>
+                            <SelectItem value="cold">❄️ Lead Frio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-blue-100">Observações</Label>
+                        <Input 
+                          value={newLead.notes} 
+                          onChange={e => setNewLead(prev => ({...prev, notes: e.target.value}))} 
+                          placeholder="Observações sobre o lead..." 
+                          className="bg-[#101828] border-blue-700/40 text-white placeholder:text-gray-400"
+                        />
+                      </div>
+                      <Button type="submit" variant="hero" className="bg-orange-600 hover:bg-orange-700 text-white mt-4">Cadastrar Lead</Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
             <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
@@ -599,30 +674,15 @@ export default function PartnerDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Clientes Cadastrados</CardTitle>
-                    <p className="text-blue-100 mt-2">Dados sincronizados em tempo real com Google Sheets.</p>
+                    <p className="text-blue-100 mt-2">Lista de clientes cadastrados no sistema.</p>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={loadClientsFromSheets}
-                    disabled={isLoadingClients}
-                    className="border-blue-600 text-blue-300 hover:bg-blue-700"
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingClients ? 'animate-spin' : ''}`} />
-                    Sincronizar
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                {isLoadingClients ? (
-                  <div className="text-center py-8">
-                    <RefreshCw className="w-8 h-8 text-blue-400 mx-auto mb-4 animate-spin" />
-                    <p className="text-blue-200">Sincronizando com Google Sheets...</p>
-                  </div>
-                ) : clients.length === 0 ? (
+                {clients.length === 0 ? (
                   <div className="text-center py-8 text-blue-200">
-                    <p>Nenhum cliente encontrado no Google Sheets.</p>
-                    <p className="text-sm mt-2">Cadastre o primeiro cliente ou verifique a configuração da planilha.</p>
+                    <p>Nenhum cliente cadastrado ainda.</p>
+                    <p className="text-sm mt-2">Cadastre o primeiro cliente usando o formulário acima.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -767,6 +827,94 @@ export default function PartnerDashboard() {
             </Card>
         </TabsContent>
 
+          {/* Nova aba de Leads */}
+          <TabsContent value="leads" className="space-y-6">
+            <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
+              <CardHeader>
+                <CardTitle>Gerenciar Leads</CardTitle>
+                <p className="text-blue-100 mt-2">Acompanhe seus leads quentes e frios para conversão em clientes.</p>
+              </CardHeader>
+              <CardContent>
+                {leads.length === 0 ? (
+                  <div className="text-center py-8 text-blue-200">
+                    <p>Nenhum lead cadastrado ainda.</p>
+                    <p className="text-sm mt-2">Cadastre leads usando a aba "Clientes" → "Lead".</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Leads Quentes */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-orange-400 mb-3 flex items-center">
+                        🔥 Leads Quentes ({leads.filter(l => l.type === 'hot').length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {leads.filter(l => l.type === 'hot').map((lead, i) => (
+                          <Card key={i} className="bg-[#101828]/80 border border-orange-600/40">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-white">{lead.name}</h4>
+                                <Badge variant="secondary" className="bg-orange-600/20 text-orange-300 border border-orange-600/30">Quente</Badge>
+                              </div>
+                              <p className="text-sm text-blue-200 mb-1">{lead.email}</p>
+                              <p className="text-sm text-blue-200 mb-1">{lead.phone}</p>
+                              <p className="text-sm text-blue-200 mb-2">{lead.company}</p>
+                              {lead.notes && (
+                                <p className="text-xs text-gray-300 mb-2 italic">"{lead.notes}"</p>
+                              )}
+                              <p className="text-xs text-gray-400">Adicionado: {lead.addedAt}</p>
+                              <div className="flex gap-2 mt-3">
+                                <Button size="sm" variant="hero" className="bg-green-600 hover:bg-green-700 text-white text-xs">
+                                  Converter
+                                </Button>
+                                <Button size="sm" variant="destructive" className="bg-red-700 hover:bg-red-800 text-white text-xs">
+                                  Remover
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Leads Frios */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center">
+                        ❄️ Leads Frios ({leads.filter(l => l.type === 'cold').length})
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {leads.filter(l => l.type === 'cold').map((lead, i) => (
+                          <Card key={i} className="bg-[#101828]/80 border border-blue-600/40">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-white">{lead.name}</h4>
+                                <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30">Frio</Badge>
+                              </div>
+                              <p className="text-sm text-blue-200 mb-1">{lead.email}</p>
+                              <p className="text-sm text-blue-200 mb-1">{lead.phone}</p>
+                              <p className="text-sm text-blue-200 mb-2">{lead.company}</p>
+                              {lead.notes && (
+                                <p className="text-xs text-gray-300 mb-2 italic">"{lead.notes}"</p>
+                              )}
+                              <p className="text-xs text-gray-400">Adicionado: {lead.addedAt}</p>
+                              <div className="flex gap-2 mt-3">
+                                <Button size="sm" variant="outline" className="border-orange-600 text-orange-300 hover:bg-orange-700 text-xs">
+                                  Aquecer
+                                </Button>
+                                <Button size="sm" variant="destructive" className="bg-red-700 hover:bg-red-800 text-white text-xs">
+                                  Remover
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -862,68 +1010,155 @@ export default function PartnerDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="resources" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resources.map((resource, index) => {
-                const Icon = resource.icon;
-                return (
-                  <Card key={index} className="bg-[#101828]/90 border border-blue-700/40 hover:shadow-lg transition-all duration-300 cursor-pointer text-white">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <Icon className="w-8 h-8 text-blue-400" />
-                        <Badge variant="outline" className="border-blue-600/40 text-blue-300">{resource.type}</Badge>
-                      </div>
-                      <CardTitle className="text-lg text-white">{resource.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Button variant="hero" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+          {/* Nova aba de Simulação */}
+          <TabsContent value="simulation" className="space-y-6">
+            <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="w-5 h-5 text-blue-400 mr-2" />
+                  Simulação de Evolução - Programa de Parceiros
+                </CardTitle>
+                <p className="text-blue-200 mt-2">Veja como suas vendas impactam seus ganhos mensais</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  {/* Nível Atual */}
+                  <div className="text-center p-4 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
+                    <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border border-blue-600/30 mb-2">
+                      Nível Atual
+                    </Badge>
+                    <h4 className="text-lg font-semibold text-white mb-2">
+                      {salesData.commissionRate === 20 ? "Iniciante" : "Premium"}
+                    </h4>
+                    <p className="text-3xl font-bold text-blue-400 mb-2">{salesData.commissionRate}%</p>
+                    <p className="text-sm text-blue-200">
+                      R$ {salesData.totalSales.toLocaleString('pt-BR', {minimumFractionDigits: 2})} vendidos
+                    </p>
+                    <p className="text-lg font-semibold text-green-400 mt-2">
+                      R$ {salesData.commission.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </p>
+                    <p className="text-xs text-blue-300">ganho atual</p>
+                  </div>
+
+                  {/* Próximo Nível */}
+                  <div className="text-center p-4 bg-[#101828]/80 border border-green-700/40 rounded-lg">
+                    <Badge variant="secondary" className="bg-green-600/20 text-green-300 border border-green-600/30 mb-2">
+                      Próximo Nível
+                    </Badge>
+                    <h4 className="text-lg font-semibold text-white mb-2">Premium</h4>
+                    <p className="text-3xl font-bold text-green-400 mb-2">30%</p>
+                    <p className="text-sm text-green-200 mb-2">R$ 50.000 vendidos</p>
+                    <p className="text-lg font-semibold text-green-400 mt-2">
+                      R$ {(50000 * 0.30).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </p>
+                    <p className="text-xs text-green-300">ganho potencial</p>
+                  </div>
+
+                  {/* Diferença */}
+                  <div className="text-center p-4 bg-[#101828]/80 border border-orange-700/40 rounded-lg">
+                    <Badge variant="secondary" className="bg-orange-600/20 text-orange-300 border border-orange-600/30 mb-2">
+                      Diferença
+                    </Badge>
+                    <h4 className="text-lg font-semibold text-white mb-2">Ganho Extra</h4>
+                    <p className="text-3xl font-bold text-orange-400 mb-2">+10%</p>
+                    <p className="text-sm text-orange-200 mb-2">ao atingir R$ 50k</p>
+                    <p className="text-lg font-semibold text-orange-400 mt-2">
+                      +R$ {((50000 * 0.30) - (50000 * 0.20)).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                    </p>
+                    <p className="text-xs text-orange-300">ganho adicional</p>
+                  </div>
+                </div>
+
+                {/* Projeção Mensal */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                  <div className="p-3 bg-[#101828]/60 border border-blue-700/30 rounded-lg">
+                    <p className="text-sm text-blue-300 mb-1">1 Cliente/Mês</p>
+                    <p className="text-lg font-bold text-white">R$ 1.500</p>
+                    <p className="text-xs text-blue-400">R$ {(1500 * (salesData.commissionRate/100)).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/mês</p>
+                  </div>
+                  <div className="p-3 bg-[#101828]/60 border border-blue-700/30 rounded-lg">
+                    <p className="text-sm text-blue-300 mb-1">3 Clientes/Mês</p>
+                    <p className="text-lg font-bold text-white">R$ 4.500</p>
+                    <p className="text-xs text-blue-400">R$ {(4500 * (salesData.commissionRate/100)).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/mês</p>
+                  </div>
+                  <div className="p-3 bg-[#101828]/60 border border-blue-700/30 rounded-lg">
+                    <p className="text-sm text-blue-300 mb-1">5 Clientes/Mês</p>
+                    <p className="text-lg font-bold text-white">R$ 7.500</p>
+                    <p className="text-xs text-blue-400">R$ {(7500 * (salesData.commissionRate/100)).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/mês</p>
+                  </div>
+                  <div className="p-3 bg-[#101828]/60 border border-green-700/30 rounded-lg">
+                    <p className="text-sm text-green-300 mb-1">10 Clientes/Mês</p>
+                    <p className="text-lg font-bold text-white">R$ 15.000</p>
+                    <p className="text-xs text-green-400">R$ {(15000 * 0.30).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/mês*</p>
+                    <p className="text-xs text-green-300">*Nível Premium</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="support" className="space-y-6">
+            {/* Suporte */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
               <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
                 <CardHeader>
-                  <CardTitle>Contatos de Suporte</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">Equipe de Parcerias</h4>
-                    <p className="text-sm text-muted-foreground mb-2">Para questões sobre vendas e comissões</p>
-                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Entrar em Contato</Button>
+                  <div className="flex items-center mb-4">
+                    <MessageSquare className="w-6 h-6 text-blue-400 mr-3" />
+                    <CardTitle>Contato Direto</CardTitle>
                   </div>
-                  
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">Suporte Técnico</h4>
-                    <p className="text-sm text-muted-foreground mb-2">Ajuda com a plataforma e implementação</p>
-                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Abrir Ticket</Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center p-6 bg-[#101828]/80 border border-blue-700/40 rounded-lg">
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="w-8 h-8 text-blue-400" />
+                    </div>
+                    <h4 className="text-xl font-semibold text-white mb-2">Equipe de Parcerias</h4>
+                    <p className="text-blue-200 mb-4 text-sm">
+                      Para questões sobre vendas, comissões e suporte comercial
+                    </p>
+                    <Button 
+                      variant="hero" 
+                      className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                      onClick={() => window.open('mailto:contato@converseia.com?subject=Dúvida Programa de Parceiros', '_blank')}
+                    >
+                      contato@converseia.com
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-[#151d2b]/90 border border-blue-700/40 text-white">
                 <CardHeader>
-                  <CardTitle>Treinamentos</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">Onboarding de Parceiros</h4>
-                    <p className="text-sm text-muted-foreground mb-2">Treinamento inicial completo</p>
-                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Assistir</Button>
+                  <div className="flex items-center mb-4">
+                    <FileText className="w-6 h-6 text-green-400 mr-3" />
+                    <CardTitle>Suporte Técnico</CardTitle>
                   </div>
-                  
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">Técnicas de Vendas</h4>
-                    <p className="text-sm text-muted-foreground mb-2">Como vender para advogados</p>
-                    <Button variant="hero" className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">Assistir</Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center p-6 bg-[#101828]/80 border border-green-700/40 rounded-lg">
+                    <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-green-400" />
+                    </div>
+                    <h4 className="text-xl font-semibold text-white mb-2">Central de Tickets</h4>
+                    <p className="text-blue-200 mb-4 text-sm">
+                      Para problemas técnicos, implementação e configurações
+                    </p>
+                    <Button 
+                      variant="hero" 
+                      className="bg-green-600 hover:bg-green-700 text-white w-full"
+                      onClick={() => {
+                        toast({
+                          title: "Redirecionando...",
+                          description: "Abrindo central de tickets em nova aba",
+                        });
+                        // Aqui você pode redirecionar para o sistema de tickets
+                        setTimeout(() => {
+                          window.open('https://suporte.converseia.com', '_blank');
+                        }, 1000);
+                      }}
+                    >
+                      Abrir Ticket de Suporte
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

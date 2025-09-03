@@ -163,31 +163,31 @@ export default function Partnership() {
                 <div key={index} className="h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 [perspective:1000px] group">
                   <div className="flip-card relative w-full h-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] cursor-pointer">
                     {/* Frente do card: ícone, título e badge */}
-                    <div className="card-front absolute inset-0 flex flex-col items-center justify-center bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl [backface-visibility:hidden] p-6">
+                    <div className="card-front absolute inset-0 flex flex-col items-center justify-center bg-[#101828]/80 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl [backface-visibility:hidden] p-4 md:p-6">
                       <Icon className="w-12 h-12 md:w-14 md:h-14 text-blue-500 drop-shadow mb-4" />
-                      <span className="text-xl md:text-2xl font-bold text-blue-100 drop-shadow-glow text-center mb-2 px-2">{benefit.title}</span>
-                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 mt-2 text-sm px-3 py-1">
+                      <span className="text-lg md:text-2xl font-bold text-blue-100 drop-shadow-glow text-center mb-2 px-2">{benefit.title}</span>
+                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 mt-2 text-xs md:text-sm px-3 py-1">
                         {benefit.badge}
                       </Badge>
                       {/* Botão para mobile */}
-                      <button className="md:hidden mt-4 text-blue-300 text-sm underline tap-button">
+                      <button className="md:hidden mt-3 text-blue-300 text-xs underline tap-button">
                         Toque para ver mais
                       </button>
                     </div>
                     {/* Verso do card: conteúdo completo */}
-                    <div className="card-back absolute inset-0 flex flex-col justify-between bg-[#101828]/90 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl p-6 [transform:rotateY(180deg)] [backface-visibility:hidden]">
-                      <div className="flex items-start justify-between mb-2">
-                        <Icon className="w-8 h-8 text-blue-500 drop-shadow" />
-                        <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40">
+                    <div className="card-back absolute inset-0 flex flex-col justify-between bg-[#101828]/90 border border-blue-700/40 shadow-xl shadow-blue-900/20 rounded-2xl p-3 md:p-6 [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                      <div className="flex items-start justify-between mb-1 md:mb-2">
+                        <Icon className="w-5 h-5 md:w-8 md:h-8 text-blue-500 drop-shadow flex-shrink-0" />
+                        <Badge variant="secondary" className="bg-blue-600/20 text-blue-100 border border-blue-600/40 text-xs">
                           {benefit.badge}
                         </Badge>
                       </div>
-                      <div>
-                        <span className="block text-lg font-semibold text-blue-100 mb-2">{benefit.title}</span>
-                        <p className="text-blue-200/90 text-sm leading-relaxed">{benefit.description}</p>
+                      <div className="flex-1 overflow-hidden">
+                        <span className="block text-sm md:text-lg font-semibold text-blue-100 mb-1 md:mb-2">{benefit.title}</span>
+                        <p className="text-blue-200/90 text-xs md:text-sm leading-tight md:leading-relaxed">{benefit.description}</p>
                       </div>
                       {/* Botão para voltar no mobile */}
-                      <button className="md:hidden mt-4 text-blue-300 text-sm underline tap-button">
+                      <button className="md:hidden mt-2 text-blue-300 text-xs underline tap-button flex-shrink-0">
                         Toque para voltar
                       </button>
                     </div>
@@ -206,6 +206,26 @@ export default function Partnership() {
               .flip-card .card-front,
               .flip-card .card-back {
                 transition: transform 0.7s ease-in-out;
+              }
+              .card-back {
+                padding: 0.75rem !important;
+              }
+              .card-back .text-base {
+                font-size: 0.8rem !important;
+                line-height: 1.3 !important;
+                margin-bottom: 0.5rem !important;
+              }
+              .card-back p {
+                font-size: 0.7rem !important;
+                line-height: 1.3 !important;
+                margin: 0 !important;
+              }
+              .card-back .w-6 {
+                width: 1.25rem !important;
+                height: 1.25rem !important;
+              }
+              .card-back .text-xs {
+                font-size: 0.65rem !important;
               }
             }
           `}</style>
