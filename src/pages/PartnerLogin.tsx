@@ -20,7 +20,35 @@ export default function PartnerLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
+      // Para admin, verificamos as credenciais específicas
+      if (loginType === 'admin') {
+        if (formData.email !== 'admin@talka.tech' || formData.password !== 'Talka2025!') {
+          toast({
+            title: "Acesso negado",
+            description: "Credenciais de administrador inválidas.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // Login direto para admin sem Supabase
+        toast({
+          title: "Login administrativo realizado!",
+          description: "Redirecionando para o painel admin...",
+          variant: "default"
+        });
+        
+        setTimeout(() => {
+          navigate('/parceria/admin');
+        }, 1500);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Para parceiros, usar Supabase normalmente
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
@@ -41,6 +69,7 @@ export default function PartnerLogin() {
         }
         return;
       }
+      
       if (!data.user) throw new Error("Usuário não encontrado ou senha incorreta.");
       
       toast({
@@ -49,26 +78,10 @@ export default function PartnerLogin() {
         variant: "default"
       });
       
-      // Verificar se é Victor para admin ou redirecionar baseado no tipo selecionado
-      if (loginType === 'admin') {
-        if (data.user.email === 'victor@talka.tech') {
-          setTimeout(() => {
-            navigate('/parceria/admin');
-          }, 1500);
-        } else {
-          toast({
-            title: "Acesso negado",
-            description: "Apenas administradores podem acessar esta área.",
-            variant: "destructive"
-          });
-          return;
-        }
-      } else {
-        // Login de parceiro normal
-        setTimeout(() => {
-          navigate('/parceria/painel');
-        }, 1500);
-      }
+      // Login de parceiro normal
+      setTimeout(() => {
+        navigate('/parceria/painel');
+      }, 1500);
       
     } catch (error: any) {
       toast({

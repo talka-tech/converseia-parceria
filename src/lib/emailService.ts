@@ -26,7 +26,7 @@ export const emailService = {
     
     const mailOptions = {
       from: process.env.SMTP_USER,
-      to: 'victor@talka.tech',
+      to: 'admin@talka.tech',
       subject: 'Nova Solicitação de Parceria - ConverseIA',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

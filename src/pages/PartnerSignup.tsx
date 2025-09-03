@@ -118,12 +118,28 @@ export default function PartnerSignup() {
           console.error("Erro ao criar notificação:", notificationError);
         }
 
-        // Enviar email para Victor
+        // Enviar emails para Victor e admin
         try {
+          // Email para Victor
           await supabase.functions.invoke('send-email', {
             body: {
               type: 'new_partner_notification',
               to: 'victor@talka.tech',
+              partnerData: {
+                name: formData.name,
+                email: formData.email,
+                company_name: formData.company_name,
+                company_type: formData.company_type,
+                phone: formData.phone
+              }
+            }
+          });
+
+          // Email para admin
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'new_partner_notification',
+              to: 'admin@talka.tech',
               partnerData: {
                 name: formData.name,
                 email: formData.email,

@@ -7,8 +7,8 @@ import Partnership from "./pages/Partnership";
 import PartnerSignup from "./pages/PartnerSignup";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import NotFound from "./pages/NotFound";
-// Importa a nova página
 import PartnerLogin from "./pages/PartnerLogin";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -22,10 +22,8 @@ const App = () => (
           <Route path="/" element={<Partnership />} />
           <Route path="/parceria" element={<Partnership />} />
           <Route path="/parceria/cadastro" element={<PartnerSignup />} />
-          
-          {/* Adiciona a nova rota de login */}
           <Route path="/parceria/login" element={<PartnerLogin />} />
-
+          <Route path="/parceria/admin" element={<AdminPanel />} />
           <Route path="/parceria/painel" element={<PartnerDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
