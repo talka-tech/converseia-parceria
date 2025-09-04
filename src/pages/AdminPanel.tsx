@@ -37,6 +37,7 @@ export default function AdminPanel() {
   const [requests, setRequests] = useState<PartnerRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [lockedRequests, setLockedRequests] = useState<{[id: string]: boolean}>({});
 
   useEffect(() => {
     checkAdminAccess();
@@ -71,6 +72,8 @@ export default function AdminPanel() {
   };
 
   const handleApproval = async (request: PartnerRequest, approved: boolean) => {
+  // Trava o botão para esta solicitação
+  setLockedRequests(prev => ({ ...prev, [request.id]: true }));
     try {
       if (approved) {
         // Aprovar parceiro - atualizar status na tabela partners
@@ -169,6 +172,10 @@ export default function AdminPanel() {
         variant: "destructive"
       });
     }
+    // Destrava o botão após 6 segundos
+    setTimeout(() => {
+      setLockedRequests(prev => ({ ...prev, [request.id]: false }));
+    }, 6000);
   };
 
   const formatDate = (dateString: string) => {
@@ -289,6 +296,7 @@ export default function AdminPanel() {
                       <Button
                         onClick={() => handleApproval(request, true)}
                         className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                        disabled={!!lockedRequests[request.id]}
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
                         Aprovar Parceiro
@@ -297,6 +305,7 @@ export default function AdminPanel() {
                         onClick={() => handleApproval(request, false)}
                         variant="destructive"
                         className="bg-red-600 hover:bg-red-700 text-white flex-1"
+                        disabled={!!lockedRequests[request.id]}
                       >
                         <XCircle className="w-4 h-4 mr-2" />
                         Rejeitar
