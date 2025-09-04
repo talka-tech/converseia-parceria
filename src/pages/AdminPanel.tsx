@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import emailjs from 'emailjs-com';
 import { 
   CheckCircle, 
   XCircle, 
@@ -80,28 +81,25 @@ export default function AdminPanel() {
 
         if (updateError) throw updateError;
 
-        // Enviar email de aprovação
+        // Enviar email de boas-vindas via EmailJS
         try {
-          await supabase.functions.invoke('send-email', {
-            body: {
-              type: 'partner_approved',
-              to: request.partner_email,
-              partnerData: {
-                name: request.partner_name,
-                email: request.partner_email,
-                company_name: request.company_name
-              }
-            }
-          });
-          
-          console.log("Email de aprovação enviado com sucesso para:", request.partner_email);
-        } catch (emailError) {
-          console.error("Erro ao enviar email de aprovação:", emailError);
-          
-          // Mostrar aviso de que o email não foi enviado
+          await emailjs.send(
+            'service_cuhgms9', // Service ID
+            'template_96735kr', // Template ID de boas-vindas
+            {
+              name: request.partner_name,
+              email: request.partner_email,
+              company_name: request.company_name
+              // Adicione outros campos usados no template, se necessário
+            },
+            'vh-KJ6gILHfM7CRpN' // User ID (Public Key)
+          );
+          console.log("EmailJS: Email de boas-vindas enviado para:", request.partner_email);
+        } catch (emailjsError) {
+          console.error("Erro ao enviar email via EmailJS:", emailjsError);
           toast({
             title: "⚠️ Aviso",
-            description: "Parceiro aprovado, mas email de notificação não foi enviado. Configure a Edge Function no Supabase.",
+            description: "Parceiro aprovado, mas o email de boas-vindas não foi enviado.",
             variant: "destructive"
           });
         }
@@ -119,27 +117,24 @@ export default function AdminPanel() {
 
         if (updateError) throw updateError;
 
-        // Enviar email de rejeição
+        // Enviar email de rejeição via EmailJS
         try {
-          await supabase.functions.invoke('send-email', {
-            body: {
-              type: 'partner_rejected',
-              to: request.partner_email,
-              partnerData: {
-                name: request.partner_name,
-                email: request.partner_email
-              }
-            }
-          });
-          
-          console.log("Email de rejeição enviado com sucesso para:", request.partner_email);
-        } catch (emailError) {
-          console.error("Erro ao enviar email de rejeição:", emailError);
-          
-          // Mostrar aviso de que o email não foi enviado
+          await emailjs.send(
+            'service_cuhgms9', // Service ID
+            'template_rejeicao_parceiro', // Novo Template ID para rejeição
+            {
+              partner_name: request.partner_name,
+              partner_email: request.partner_email,
+              time: new Date().toLocaleString('pt-BR')
+            },
+            'vh-KJ6gILHfM7CRpN' // User ID (Public Key)
+          );
+          console.log("EmailJS: Email de rejeição enviado para:", request.partner_email);
+        } catch (emailjsError) {
+          console.error("Erro ao enviar email via EmailJS:", emailjsError);
           toast({
             title: "⚠️ Aviso",
-            description: "Parceiro rejeitado, mas email de notificação não foi enviado. Configure a Edge Function no Supabase.",
+            description: "Parceiro rejeitado, mas o email de notificação não foi enviado.",
             variant: "destructive"
           });
         }

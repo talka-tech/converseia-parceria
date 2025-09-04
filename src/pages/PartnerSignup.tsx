@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import emailjs from 'emailjs-com';
 import { User, Building, Mail, Phone, Briefcase, KeyRound } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -84,17 +85,46 @@ export default function PartnerSignup() {
         .from('partners')
         .insert([
           {
-            user_id: user.id,
+            name: formData.name,
+            email: formData.email,
+            password: formData.password, // Não recomendado salvar senha em texto puro, mas segue ordem solicitada
+            phone: formData.phone,
             company_name: formData.company_name,
             company_type: formData.company_type,
-            phone: formData.phone,
-            status: 'pending_approval', // Status pendente de aprovação
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            status: 'pending_approval',
+            user_id: user.id // Mantém o vínculo com o usuário
           }
         ])
         .select()
         .single();
       if (partnerError) throw new Error(partnerError.message);
+
+      // 3. Disparar email via EmailJS
+      try {
+        await emailjs.send(
+          'service_cuhgms9', // Service ID
+          'template_5b83v1q', // Template ID
+          {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            company_name: formData.company_name,
+            company_type: formData.company_type,
+            time: new Date().toLocaleString('pt-BR')
+          },
+          'vh-KJ6gILHfM7CRpN' // User ID (Public Key)
+        );
+        console.log('EmailJS: Email de novo parceiro enviado!');
+      } catch (emailjsError) {
+        console.error('Erro ao enviar email via EmailJS:', emailjsError);
+        toast({
+          title: '⚠️ Aviso',
+          description: 'Solicitação registrada, mas o email de notificação não foi enviado.',
+          variant: 'destructive'
+        });
+      }
+
 
       // 3. Enviar notificação para Victor
       try {
@@ -175,16 +205,16 @@ export default function PartnerSignup() {
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-2xl mx-auto">
           <Card className="border-2 shadow-lg bg-[#151d2b]/80 border-blue-700/40 text-white">
-            <CardHeader className="text-center">
-              <img src="/logo.png" alt="ConverseIA Direito" className="w-16 h-16 mx-auto mb-4" onError={e => {
+            <CardHeader className="text-center pb-2">
+              <img src="/logo.png" alt="ConverseIA Direito" className="w-16 h-16 mx-auto mb-2" onError={e => {
                 const fallback = "/logo.png";
                 const img = e.target as HTMLImageElement;
                 if (img && img.src && !img.src.endsWith(fallback)) {
                   img.src = fallback;
                 }
               }} />
-              <CardTitle className="text-3xl">Cadastro de Parceiro</CardTitle>
-              <p className="text-muted-foreground pt-2">
+              <CardTitle className="text-3xl mb-1">Cadastro de Parceiro</CardTitle>
+              <p className="text-muted-foreground pt-1 mb-0">
                 Já tem uma conta?{" "}
                 <Link to="/parceria/login" className="text-primary font-semibold hover:underline">
                   Faça login
@@ -193,8 +223,8 @@ export default function PartnerSignup() {
             </CardHeader>
             <CardContent>
               {showConfirmEmail ? (
-                <div className="py-12 text-center flex flex-col items-center">
-                  <svg width="64" height="64" fill="none" viewBox="0 0 24 24" className="mx-auto mb-6">
+                <div className="pt-4 pb-12 text-center flex flex-col items-center">
+                  <svg width="64" height="64" fill="none" viewBox="0 0 24 24" className="mx-auto mb-3">
                     <path stroke="#f59e0b" strokeWidth="1.5" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
                   </svg>
                   <h2 className="text-2xl font-bold mb-2 text-amber-400">Cadastro Enviado para Aprovação</h2>
