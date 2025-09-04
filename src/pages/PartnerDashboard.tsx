@@ -296,7 +296,7 @@ export default function PartnerDashboard() {
                     </div>
                     <div className="flex items-center">
                       <Clock className="w-5 h-5 text-amber-400 mr-2" />
-                      <span className="text-amber-200">Aguardando aprovação do Victor</span>
+                      <span className="text-amber-200">Aguardando aprovação</span>
                     </div>
                   </div>
                 </div>
